@@ -15,7 +15,7 @@ public class Video {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "titlle")
+    @Column(name = "title")
     private String title;
 
     @Column(name = "thumbnail_path")
