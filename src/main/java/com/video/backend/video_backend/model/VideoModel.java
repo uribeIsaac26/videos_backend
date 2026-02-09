@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class VideoModel {
     private Integer id;
     private String title;
-    private String thumbnailPath;
-    private String videoPath;
+    private String thumbnailUrl;
+    private String videoUrl;
 }
