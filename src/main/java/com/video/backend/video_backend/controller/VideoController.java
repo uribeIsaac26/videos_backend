@@ -5,6 +5,7 @@ import com.video.backend.video_backend.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,5 +20,10 @@ public class VideoController {
     @GetMapping
     public ResponseEntity<List<VideoModel>> findAll(){
         return videoService.findAll();
+    }
+
+    @GetMapping("{id}/thumbnail")
+    public Void findThumbnailByIdVideo(@PathVariable("id") Integer id){
+        return videoService.findThumbnailByIdVideo(id);
     }
 }
