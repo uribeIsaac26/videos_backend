@@ -13,3 +13,8 @@ spring:
     show-sql: true
 
 
+app:
+  media:
+    base-path: C:\Users\isaac\Documents\proyecto videos\video_backend\media
+
+
