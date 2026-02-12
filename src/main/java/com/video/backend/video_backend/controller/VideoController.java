@@ -1,18 +1,17 @@
 package com.video.backend.video_backend.controller;
 
-import com.video.backend.video_backend.model.VideoModel;
-import com.video.backend.video_backend.model.VideoStream;
+import com.video.backend.video_backend.dto.VideoModel;
+import com.video.backend.video_backend.dto.VideoStream;
 import com.video.backend.video_backend.service.VideoService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
-import org.springframework.data.repository.init.ResourceReader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,5 +47,16 @@ public class VideoController {
         return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
                 .contentType(stream.getMediaType())
                 .body(stream.getRegion());
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<VideoModel> uploadVideo(
+            @RequestParam("title") String title,
+            @RequestParam("videoFile") MultipartFile videoFile,
+            @RequestParam(value = "thumbnailFile", required = false) MultipartFile thumbnailFile
+            ){
+        VideoModel response = videoService.uploadVideo(title, videoFile, thumbnailFile);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

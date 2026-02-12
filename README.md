@@ -46,3 +46,16 @@
     Debe responder con el Content-Type correcto (ej: video/mp4).
     
     Debe incluir headers adecuados para streaming.
+-📝 HU-04 – Subir video con thumbnail opcional
+
+    Como:
+    
+    Administrador del sistema
+    
+    Quiero:
+    
+    Subir un archivo de video y opcionalmente un thumbnail
+    
+    Para:
+    
+    Que el video quede disponible en la plataforma

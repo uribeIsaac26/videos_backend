@@ -1,10 +1,8 @@
-package com.video.backend.video_backend.model;
+package com.video.backend.video_backend.dto;
 
-import jakarta.persistence.Column;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.http.MediaType;
 
 @Data
 @AllArgsConstructor

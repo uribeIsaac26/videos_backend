@@ -1,9 +1,10 @@
-package com.video.backend.video_backend.model;
+package com.video.backend.video_backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.http.MediaType;
+
 @Getter
 @AllArgsConstructor
 public class VideoStream {
