@@ -22,6 +22,6 @@ server:
 
 app:
   media:
-    base-path: C:\Users\isaac\Documents\proyecto videos\video_backend\media
+    base-path: C:\Users\isaac\media
 
 
