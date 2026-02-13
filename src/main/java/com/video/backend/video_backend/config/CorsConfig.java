@@ -14,7 +14,7 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry){
                 registry.addMapping("/api/videos/**")
                         .allowedOrigins("*")
-                        .allowedMethods("GET");
+                        .allowedMethods("GET", "POST");
             }
         };
     }
