@@ -10,15 +10,20 @@ spring:
     multipart:
       max-file-size: 500MB
       max-request-size: 500MB
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
 server:
   port: 8080
   address: 0.0.0.0
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
+
+
+jwt:
+  secret: 3tBp7QEWK6q4fFkWpRyDxp+NDUeEgMXxwMfNXe0JIxY=
+  expiration: 86400000
 
 app:
   media:
