@@ -12,8 +12,9 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry){
-                registry.addMapping("/api/videos/**")
+                registry.addMapping("/api/**")
                         .allowedOrigins("*")
+                        .allowedHeaders("*")
                         .allowedMethods("GET", "POST");
             }
         };
