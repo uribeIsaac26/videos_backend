@@ -113,6 +113,8 @@ public class VideoService {
         Path thumbnailPath = Paths.get(mediaBasePath, video.getThumbnailPath());
         Files.deleteIfExists(thumbnailPath);
 
+        log.info("Video eliminado");
+
         videoRepository.deleteById(id);
     }
 
