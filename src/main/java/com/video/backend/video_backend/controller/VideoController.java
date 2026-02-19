@@ -59,4 +59,10 @@ public class VideoController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteVideo(@PathVariable Integer id) throws IOException {
+        videoService.deleteVideo(id);
+        return ResponseEntity.ok().build();
+    }
 }

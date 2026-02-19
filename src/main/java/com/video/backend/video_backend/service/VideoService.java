@@ -8,6 +8,7 @@ import com.video.backend.video_backend.excepcion.VideoNotFoundException;
 import com.video.backend.video_backend.mapper.VideoMapper;
 import com.video.backend.video_backend.dto.VideoModel;
 import com.video.backend.video_backend.repository.VideoRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -100,6 +101,19 @@ public class VideoService {
         }
 
         return videoPath;
+    }
+
+    @Transactional
+    public void deleteVideo(Integer id) throws IOException {
+        Video video = videoRepository.findById(id).orElseThrow(VideoNotFoundException::new);
+
+        Path videoPath = Paths.get(mediaBasePath, video.getVideoPath());
+        Files.deleteIfExists(videoPath);
+
+        Path thumbnailPath = Paths.get(mediaBasePath, video.getThumbnailPath());
+        Files.deleteIfExists(thumbnailPath);
+
+        videoRepository.deleteById(id);
     }
 
     public VideoModel uploadVideo(String title, MultipartFile videoFile, MultipartFile thumbnailFile){
