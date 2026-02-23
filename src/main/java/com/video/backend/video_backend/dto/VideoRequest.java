@@ -11,4 +11,5 @@ public class VideoRequest {
     private String title;
     private String videoFileName;
     private String thumbnailFileName;
+    private Long size;
 }

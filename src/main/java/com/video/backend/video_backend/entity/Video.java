@@ -23,4 +23,7 @@ public class Video {
 
     @Column(name = "video_path")
     private String videoPath;
+
+    @Column(name = "size")
+    private Long size;
 }

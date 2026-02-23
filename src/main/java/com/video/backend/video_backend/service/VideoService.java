@@ -185,6 +185,7 @@ public class VideoService {
                 .title(title)
                 .videoFileName(videoFileName)
                 .thumbnailFileName(thumbnailFileName)
+                .size(videoFile.getSize())
                 .build();
 
         return saveVideo(videoRequest, videoPath, thumbnailPath);
