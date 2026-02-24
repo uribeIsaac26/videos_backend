@@ -6,6 +6,8 @@ import com.video.backend.video_backend.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 @RestController
 @RequestMapping("api/videos")
@@ -25,8 +26,8 @@ public class VideoController {
     private final VideoService videoService;
 
     @GetMapping
-    public ResponseEntity<List<VideoModel>> findAll(){
-        return ResponseEntity.ok(videoService.findAll());
+    public ResponseEntity<Page<VideoModel>> findAll(Pageable pageable){
+        return ResponseEntity.ok(videoService.findAll(pageable));
     }
 
     @GetMapping("{id}/thumbnail")

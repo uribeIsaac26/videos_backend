@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,10 +41,8 @@ public class VideoService {
     @Value("${app.media.base-path}")
     private String mediaBasePath;
 
-    public List<VideoModel> findAll(){
-        List<VideoModel> videoModels =  videoRepository.findAll().stream().map(videoMapper::toModel).toList();
-
-        return videoModels;
+    public Page<VideoModel> findAll(Pageable pageable){
+        return videoRepository.findAll(pageable).map(videoMapper::toModel);
     }
 
     public Resource findThumbnailByIdVideo(Integer id){
