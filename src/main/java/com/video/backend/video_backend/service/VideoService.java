@@ -21,8 +21,10 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,6 +32,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Service
@@ -160,6 +163,7 @@ public class VideoService {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(
                         "ffmpeg",
+                        "-y", // 🔥 importante
                         "-i", videoPath.toAbsolutePath().toString(),
                         "-ss", "00:00:02",
                         "-vframes", "1",
@@ -171,10 +175,21 @@ public class VideoService {
 
                 Process process = processBuilder.start();
 
-                int exitCode = process.waitFor();
+                // 🔥 Consumir el output para evitar bloqueo
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()))) {
 
-                if (exitCode != 0){
-                    throw new RuntimeException("Error al generar thumbnail con ffmpeg");
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        log.info(line); // o System.out.println(line);
+                    }
+                }
+
+                boolean finished = process.waitFor(30, TimeUnit.SECONDS);
+
+                if (!finished) {
+                    process.destroyForcibly();
+                    throw new RuntimeException("ffmpeg se quedó colgado");
                 }
             }catch (IOException | InterruptedException e){
                 throw new RuntimeException("Error ejeccutando ffmpeg");
