@@ -44,6 +44,8 @@ public class VideoService {
     @Value("${app.media.base-path}")
     private String mediaBasePath;
 
+    private static final long CHUNK_SIZE = 1024 * 1024;
+
     public Page<VideoModel> findAll(Pageable pageable){
         return videoRepository.findAll(pageable).map(videoMapper::toModel);
     }
@@ -76,12 +78,13 @@ public class VideoService {
         ResourceRegion region;
 
         if (ranges.isEmpty()){
-            region = new ResourceRegion(videoResource, 0, contentLength);
+            long rangeLenght = Math.min(CHUNK_SIZE, contentLength);
+            region = new ResourceRegion(videoResource, 0, rangeLenght);
         }else {
             HttpRange range = ranges.get(0);
             long start = range.getRangeStart(contentLength);
             long end = range.getRangeEnd(contentLength);
-            long rangeLength = Math.min(1024 * 1024, end -start + 1);
+            long rangeLength = Math.min(CHUNK_SIZE, end -start + 1);
             region = new ResourceRegion(videoResource, start, rangeLength);
         }
 

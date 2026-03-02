@@ -47,6 +47,7 @@ public class VideoController {
         VideoStream stream = videoService.findVideoById(id, httpHeaders);
         return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
                 .contentType(stream.getMediaType())
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .body(stream.getRegion());
     }
 
