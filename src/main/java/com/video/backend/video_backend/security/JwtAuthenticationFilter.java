@@ -2,6 +2,7 @@ package com.video.backend.video_backend.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,20 +25,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
+        System.out.println("Filtro ejecutado para: " + request.getRequestURI());
+        String token = extractToken(request);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")){
+        System.out.println("Token extraído: " + token);
+
+        if (token == null){
             filterChain.doFilter(request, response);
             return;
         }
 
-        final String jwt = authHeader.substring(7);
-        final String username = jwtService.extractUsername(jwt);
+        final String username = jwtService.extractUsername(token);
 
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            if (jwtService.isTokenValid(jwt, userDetails)){
+            if (jwtService.isTokenValid(token, userDetails)){
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -54,5 +57,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String extractToken(HttpServletRequest request){
+        if (request.getCookies() == null ) return  null;
+        for (Cookie cookie: request.getCookies()){
+            if ("jwt".equals(cookie.getName())){
+                return cookie.getValue();
+            }
+        }
+
+        return null;
     }
 }
