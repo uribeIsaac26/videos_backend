@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "video")
 @Data
@@ -26,4 +29,12 @@ public class Video {
 
     @Column(name = "size")
     private Long size;
+
+    @ManyToMany
+    @JoinTable(
+            name = "video_tag",
+            joinColumns = @JoinColumn(name = "video_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
 }
