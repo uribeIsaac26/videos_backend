@@ -7,6 +7,7 @@ import com.video.backend.video_backend.excepcion.ThumbnailNotFoundException;
 import com.video.backend.video_backend.excepcion.VideoNotFoundException;
 import com.video.backend.video_backend.mapper.VideoMapper;
 import com.video.backend.video_backend.dto.VideoModel;
+import com.video.backend.video_backend.repository.TagRepository;
 import com.video.backend.video_backend.repository.VideoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +47,9 @@ public class VideoService {
 
     private static final long CHUNK_SIZE = 1024 * 1024;
 
+    @Transactional
     public Page<VideoModel> findAll(Pageable pageable){
-        return videoRepository.findAll(pageable).map(videoMapper::toModel);
+            return videoRepository.findAll(pageable).map(videoMapper::toModel);
     }
 
     public Resource findThumbnailByIdVideo(Integer id){

@@ -2,7 +2,9 @@ package com.video.backend.video_backend.controller;
 
 import com.video.backend.video_backend.dto.VideoModel;
 import com.video.backend.video_backend.dto.VideoStream;
+import com.video.backend.video_backend.dto.VideoTagRequest;
 import com.video.backend.video_backend.service.VideoService;
+import com.video.backend.video_backend.service.VideoTagService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
@@ -25,6 +27,7 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class VideoController {
     private final VideoService videoService;
+    private final VideoTagService videoTagService;
 
     @GetMapping
     public ResponseEntity<Page<VideoModel>> findAll(Pageable pageable){
@@ -67,5 +70,12 @@ public class VideoController {
     public ResponseEntity<Void> deleteVideo(@PathVariable Integer id) throws IOException {
         videoService.deleteVideo(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/tags")
+    public ResponseEntity<VideoModel> addTagsTovideoo(@RequestBody VideoTagRequest videoTagRequest){
+        VideoModel updatedVideo = videoTagService.addTagsToVideo(videoTagRequest);
+
+        return ResponseEntity.ok(updatedVideo);
     }
 }
