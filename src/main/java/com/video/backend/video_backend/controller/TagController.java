@@ -25,4 +25,9 @@ public class TagController {
     public ResponseEntity<TagResponse> save(@RequestBody TagRequest tagRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(tagService.save(tagRequest));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TagResponse> findById(@PathVariable Integer id){
+        return ResponseEntity.ok(tagService.findById(id));
+    }
 }

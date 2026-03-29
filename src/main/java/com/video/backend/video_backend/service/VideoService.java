@@ -241,4 +241,9 @@ public class VideoService {
 
         return videoMapper.toModel(video);
     }
+
+    public Page<VideoModel> findByTag(Integer tagId, Pageable pageable) {
+        return videoRepository.findByTagId(tagId, pageable)
+                .map(videoMapper::toModel);
+    }
 }

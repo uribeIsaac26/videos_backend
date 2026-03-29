@@ -72,10 +72,17 @@ public class VideoController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/tags")
+    @PutMapping("/tag")
     public ResponseEntity<VideoModel> addTagsTovideoo(@RequestBody VideoTagRequest videoTagRequest){
         VideoModel updatedVideo = videoTagService.addTagsToVideo(videoTagRequest);
 
         return ResponseEntity.ok(updatedVideo);
+    }
+
+    @GetMapping("/tag/{tagId}")
+    public ResponseEntity<Page<VideoModel>> getVideosByTag(
+            @PathVariable Integer tagId,
+            Pageable pageable) {
+        return ResponseEntity.ok(videoService.findByTag(tagId, pageable));
     }
 }

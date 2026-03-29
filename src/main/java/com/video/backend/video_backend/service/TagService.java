@@ -4,6 +4,7 @@ import com.video.backend.video_backend.dto.TagRequest;
 import com.video.backend.video_backend.dto.TagResponse;
 import com.video.backend.video_backend.entity.Tag;
 import com.video.backend.video_backend.excepcion.TagAlreadyExistsException;
+import com.video.backend.video_backend.excepcion.TagNotFoundException;
 import com.video.backend.video_backend.mapper.TagMapper;
 import com.video.backend.video_backend.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +31,8 @@ public class TagService {
         return tagRepository.findAll(pageable).map(tagMapper::toResponse);
     }
 
+    public TagResponse findById(Integer id){
+        return tagMapper.toResponse(tagRepository.findById(id).orElseThrow(TagNotFoundException::new));
+    }
 
 }
