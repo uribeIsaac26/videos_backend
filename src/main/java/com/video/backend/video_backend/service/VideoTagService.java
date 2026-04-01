@@ -30,6 +30,7 @@ public class VideoTagService {
 
         List<Tag> tags = tagRepository.findAllById(videoTagRequest.getTagIds());
 
+        video.getTags().clear();
         video.getTags().addAll(tags);
 
         return videoMapper.toModel(video);
