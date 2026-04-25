@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface VideoRepository extends JpaRepository<Video, Integer> {
     @Query("SELECT DISTINCT v FROM Video v LEFT JOIN FETCH v.tags")
@@ -16,6 +18,6 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
     @Query("SELECT v FROM Video v LEFT JOIN FETCH v.tags")
     Page<Video> findAll(Pageable pageable);
 
-    @Query("SELECT v FROM Video v JOIN v.tags t WHERE t.id = :tagId")
-    Page<Video> findByTagId(@Param("tagId") Integer tagId, Pageable pageable);
+    @Query("SELECT v FROM Video v JOIN v.tags t WHERE t.id IN :tagIds")
+    Page<Video> findByTagId(@Param("tagIds") List<Integer> tagId, Pageable pageable);
 }

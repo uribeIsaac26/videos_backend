@@ -16,5 +16,6 @@ public class VideoModel {
     private String title;
     private String thumbnailUrl;
     private String videoUrl;
+    private Long size;
     private Set<TagResponse> tags;
 }

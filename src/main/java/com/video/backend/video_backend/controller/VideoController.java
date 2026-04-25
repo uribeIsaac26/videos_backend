@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/videos")
@@ -79,10 +80,10 @@ public class VideoController {
         return ResponseEntity.ok(updatedVideo);
     }
 
-    @GetMapping("/tag/{tagId}")
+    @GetMapping("/tag")
     public ResponseEntity<Page<VideoModel>> getVideosByTag(
-            @PathVariable Integer tagId,
+           @RequestParam List<Integer> tagIds,
             Pageable pageable) {
-        return ResponseEntity.ok(videoService.findByTag(tagId, pageable));
+        return ResponseEntity.ok(videoService.findByTag(tagIds, pageable));
     }
 }
