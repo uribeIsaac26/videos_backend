@@ -18,6 +18,14 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
     @Query("SELECT v FROM Video v LEFT JOIN FETCH v.tags")
     Page<Video> findAll(Pageable pageable);
 
-    @Query("SELECT v FROM Video v JOIN v.tags t WHERE t.id IN :tagIds")
-    Page<Video> findByTagId(@Param("tagIds") List<Integer> tagId, Pageable pageable);
+    @Query("SELECT v FROM Video v " +
+            "JOIN v.tags t " +
+            "WHERE t.id IN :tagIds " +
+            "GROUP BY v.id " +
+            "HAVING COUNT(DISTINCT t.id) = :tagCount")
+    Page<Video> findByAllTags(
+            @Param("tagIds") List<Integer> tagIds,
+            @Param("tagCount") Long tagCount,
+            Pageable pageable
+    );
 }

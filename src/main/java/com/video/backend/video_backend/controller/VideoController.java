@@ -84,6 +84,6 @@ public class VideoController {
     public ResponseEntity<Page<VideoModel>> getVideosByTag(
            @RequestParam List<Integer> tagIds,
             Pageable pageable) {
-        return ResponseEntity.ok(videoService.findByTag(tagIds, pageable));
+        return ResponseEntity.ok(videoService.findByAllTags(tagIds, pageable));
     }
 }

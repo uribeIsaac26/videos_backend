@@ -242,8 +242,9 @@ public class VideoService {
         return videoMapper.toModel(video);
     }
 
-    public Page<VideoModel> findByTag(List<Integer> tagIds, Pageable pageable) {
-        return videoRepository.findByTagId(tagIds, pageable)
+    public Page<VideoModel> findByAllTags(List<Integer> tagIds, Pageable pageable) {
+        Long tagCount = (long) tagIds.size();
+        return videoRepository.findByAllTags(tagIds, tagCount, pageable)
                 .map(videoMapper::toModel);
     }
 }
