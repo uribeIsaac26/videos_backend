@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface VideoTagTemporalRepository extends JpaRepository<VideoTagTemporal, Integer> {
     Page<VideoTagTemporal> findByConfirmFalse(Pageable pageable);
+
+    VideoTagTemporal findByVideoId(Integer id);
 }
