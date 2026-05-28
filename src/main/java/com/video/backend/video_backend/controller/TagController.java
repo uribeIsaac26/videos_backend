@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/tags")
 @RequiredArgsConstructor
@@ -29,5 +31,10 @@ public class TagController {
     @GetMapping("/{id}")
     public ResponseEntity<TagResponse> findById(@PathVariable Integer id){
         return ResponseEntity.ok(tagService.findById(id));
+    }
+
+    @GetMapping("/by-names")
+    public ResponseEntity<List<TagResponse>> findTagsByNombre(@RequestParam(name = "tags") List<String> tags){
+        return ResponseEntity.ok(tagService.findByName(tags));
     }
 }

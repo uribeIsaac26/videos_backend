@@ -36,4 +36,7 @@ public class Video {
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tag> tags = new HashSet<>();
+
+    @OneToOne(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
+    private VideoTagTemporal videoTagTemporal;
 }

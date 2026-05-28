@@ -35,4 +35,8 @@ public class TagService {
         return tagMapper.toResponse(tagRepository.findById(id).orElseThrow(TagNotFoundException::new));
     }
 
+    public List<TagResponse> findByName(List<String> tags){
+        return tagRepository.findByNameIn(tags).stream().map(tagMapper::toResponse).toList();
+    }
+
 }
