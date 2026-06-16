@@ -3,7 +3,9 @@ package com.video.backend.video_backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -39,4 +41,7 @@ public class Video {
 
     @OneToOne(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
     private VideoTagTemporal videoTagTemporal;
+
+    @OneToMany(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VideoDuplicateMember> duplicateMembers = new ArrayList<>();
 }
