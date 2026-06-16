@@ -27,6 +27,9 @@ public class VideoDuplicateGroup {
     @Column(name = "date_creation")
     private LocalDateTime dateCreation;
 
+    @Column(name = "resuelto", nullable = false)
+    private Boolean resuelto = false;
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<VideoDuplicateMember> members = new ArrayList<>();
 

@@ -21,7 +21,15 @@ public class VideoDuplicateService {
 
     @Transactional(readOnly = true)
     public Page<VideoDuplicateGroupSummaryResponse> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toSummary);
+        return repository.findAllByResueltoFalse(pageable).map(mapper::toSummary);
+    }
+
+    @Transactional
+    public void resolve(Integer id) {
+        VideoDuplicateGroup group = repository.findById(id)
+                .orElseThrow(VideoDuplicateGroupNotFoundException::new);
+        group.setResuelto(true);
+        repository.save(group);
     }
 
     @Transactional(readOnly = true)

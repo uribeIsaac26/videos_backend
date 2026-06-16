@@ -7,10 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("api/video-duplicates")
@@ -27,5 +25,11 @@ public class VideoDuplicateController {
     @GetMapping("/{id}")
     public ResponseEntity<VideoDuplicateGroupDetailResponse> findById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.findById(id));
+    }
+
+    @PatchMapping("/{id}/resolve")
+    public ResponseEntity<Void> resolve(@PathVariable Integer id) {
+        service.resolve(id);
+        return ResponseEntity.noContent().build();
     }
 }
