@@ -141,7 +141,7 @@ public class VideoService {
 
         Path videoDirectory = Paths.get(mediaBasePath, "video");
         Path videoPath = videoDirectory.resolve(videoFileName).normalize();
-        Path tempPath = videoDirectory.resolve(videoId + originalExtension).normalize();
+        Path tempPath = videoDirectory.resolve(videoId + "_original" + originalExtension).normalize();
 
         try {
             Files.createDirectories(videoDirectory);
