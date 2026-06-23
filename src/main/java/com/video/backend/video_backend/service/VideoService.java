@@ -131,7 +131,12 @@ public class VideoService {
 
         String videoId = UUID.randomUUID().toString();
 
-        String videoFileName = videoId + ".mp4";
+        String originalFilename = videoFile.getOriginalFilename();
+        String extension = (originalFilename != null && originalFilename.contains("."))
+                ? originalFilename.substring(originalFilename.lastIndexOf('.'))
+                : ".mp4";
+
+        String videoFileName = videoId + extension;
         String thumbnailFileName = videoId + ".jpg";
 
         Path videoDirectory = Paths.get(mediaBasePath, "video");
