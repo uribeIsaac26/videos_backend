@@ -132,26 +132,68 @@ public class VideoService {
         String videoId = UUID.randomUUID().toString();
 
         String originalFilename = videoFile.getOriginalFilename();
-        String extension = (originalFilename != null && originalFilename.contains("."))
+        String originalExtension = (originalFilename != null && originalFilename.contains("."))
                 ? originalFilename.substring(originalFilename.lastIndexOf('.'))
-                : ".mp4";
+                : ".tmp";
 
-        String videoFileName = videoId + extension;
+        String videoFileName = videoId + ".mp4";
         String thumbnailFileName = videoId + ".jpg";
 
         Path videoDirectory = Paths.get(mediaBasePath, "video");
         Path videoPath = videoDirectory.resolve(videoFileName).normalize();
+        Path tempPath = videoDirectory.resolve(videoId + originalExtension).normalize();
 
         try {
             Files.createDirectories(videoDirectory);
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException("No se pudo crear el directorio de videos", e);
         }
 
-        try(InputStream inputStream = videoFile.getInputStream()){
-            Files.copy(inputStream, videoPath, StandardCopyOption.REPLACE_EXISTING);
-        }catch (IOException e){
+        try (InputStream inputStream = videoFile.getInputStream()) {
+            Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
             throw new RuntimeException("Error al guardar el archivo del video", e);
+        }
+
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "ffmpeg",
+                    "-y",
+                    "-i", tempPath.toAbsolutePath().toString(),
+                    "-c:v", "libx264",
+                    "-c:a", "aac",
+                    "-movflags", "+faststart",
+                    videoPath.toAbsolutePath().toString()
+            );
+
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    log.info(line);
+                }
+            }
+
+            boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+
+            if (!finished) {
+                process.destroyForcibly();
+                throw new RuntimeException("ffmpeg timeout al transcodificar el video");
+            }
+
+            if (process.exitValue() != 0) {
+                throw new RuntimeException("ffmpeg falló al transcodificar el video");
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Error transcodificando el video", e);
+        } finally {
+            try {
+                Files.deleteIfExists(tempPath);
+            } catch (IOException e) {
+                log.warn("No se pudo eliminar el archivo temporal: {}", tempPath);
+            }
         }
 
         Path thumbnailDirectory = Paths.get(mediaBasePath, "thumbnails");
