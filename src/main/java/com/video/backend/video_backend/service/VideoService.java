@@ -156,23 +156,40 @@ public class VideoService {
         }
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                    "ffmpeg",
-                    "-y",
-                    "-i", tempPath.toAbsolutePath().toString(),
-                    "-c:v", "libx264",
-                    "-c:a", "aac",
-                    "-movflags", "+faststart",
-                    videoPath.toAbsolutePath().toString()
-            );
+            boolean alreadyCompatible = isH264Aac(tempPath);
+            List<String> ffmpegCmd;
 
+            if (alreadyCompatible) {
+                log.info("Video ya es H.264/AAC, copiando streams sin re-encodear");
+                ffmpegCmd = List.of(
+                        "ffmpeg", "-y",
+                        "-i", tempPath.toAbsolutePath().toString(),
+                        "-c", "copy",
+                        "-movflags", "+faststart",
+                        videoPath.toAbsolutePath().toString()
+                );
+            } else {
+                log.info("Transcodificando video a H.264/AAC con preset veryfast");
+                ffmpegCmd = List.of(
+                        "ffmpeg", "-y",
+                        "-i", tempPath.toAbsolutePath().toString(),
+                        "-c:v", "libx264",
+                        "-preset", "veryfast",
+                        "-threads", "0",
+                        "-c:a", "aac",
+                        "-movflags", "+faststart",
+                        videoPath.toAbsolutePath().toString()
+                );
+            }
+
+            ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCmd);
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    log.info(line);
+                    log.debug(line);
                 }
             }
 
@@ -293,5 +310,36 @@ public class VideoService {
         Long tagCount = (long) tagIds.size();
         return videoRepository.findByAllTags(tagIds, tagCount, pageable)
                 .map(videoMapper::toModel);
+    }
+
+    private boolean isH264Aac(Path filePath) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "ffprobe", "-v", "quiet",
+                    "-show_entries", "stream=codec_name",
+                    "-of", "csv=p=0",
+                    filePath.toAbsolutePath().toString()
+            );
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+
+            List<String> codecs;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                codecs = reader.lines().map(String::trim).filter(s -> !s.isEmpty()).toList();
+            }
+
+            boolean finished = p.waitFor(10, TimeUnit.SECONDS);
+            if (!finished) {
+                p.destroyForcibly();
+                return false;
+            }
+
+            boolean hasH264 = codecs.stream().anyMatch("h264"::equals);
+            boolean hasAac = codecs.stream().anyMatch("aac"::equals);
+            return hasH264 && hasAac;
+        } catch (IOException | InterruptedException e) {
+            log.warn("No se pudo detectar codec del video, se asume necesita transcodificacion: {}", e.getMessage());
+            return false;
+        }
     }
 }
