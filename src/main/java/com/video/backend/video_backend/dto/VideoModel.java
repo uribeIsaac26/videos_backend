@@ -1,9 +1,7 @@
 package com.video.backend.video_backend.dto;
 
-import com.video.backend.video_backend.entity.Tag;
+import com.video.backend.video_backend.util.VideoStatus;
 import lombok.*;
-import org.springframework.core.io.support.ResourceRegion;
-import org.springframework.http.MediaType;
 
 import java.util.Set;
 
@@ -17,5 +15,7 @@ public class VideoModel {
     private String thumbnailUrl;
     private String videoUrl;
     private Long size;
+    private VideoStatus status;
+    private String errorMessage;
     private Set<TagResponse> tags;
 }

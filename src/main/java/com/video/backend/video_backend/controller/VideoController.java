@@ -1,6 +1,7 @@
 package com.video.backend.video_backend.controller;
 
 import com.video.backend.video_backend.dto.VideoModel;
+import com.video.backend.video_backend.dto.VideoStatusResponse;
 import com.video.backend.video_backend.dto.VideoStream;
 import com.video.backend.video_backend.dto.VideoTagRequest;
 import com.video.backend.video_backend.service.VideoService;
@@ -15,7 +16,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -63,10 +63,14 @@ public class VideoController {
             @RequestParam("title") String title,
             @RequestParam("videoFile") MultipartFile videoFile,
             @RequestParam(value = "thumbnailFile", required = false) MultipartFile thumbnailFile
-            ){
+    ) {
         VideoModel response = videoService.uploadVideo(title, videoFile, thumbnailFile);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @GetMapping("{id}/status")
+    public ResponseEntity<VideoStatusResponse> getVideoStatus(@PathVariable Integer id) {
+        return ResponseEntity.ok(videoService.getVideoStatus(id));
     }
 
     @DeleteMapping("{id}")

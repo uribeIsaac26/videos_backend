@@ -1,14 +1,15 @@
 package com.video.backend.video_backend.service;
 
 import com.video.backend.video_backend.dto.VideoRequest;
+import com.video.backend.video_backend.dto.VideoStatusResponse;
 import com.video.backend.video_backend.dto.VideoStream;
 import com.video.backend.video_backend.entity.Video;
 import com.video.backend.video_backend.excepcion.ThumbnailNotFoundException;
 import com.video.backend.video_backend.excepcion.VideoNotFoundException;
 import com.video.backend.video_backend.mapper.VideoMapper;
 import com.video.backend.video_backend.dto.VideoModel;
-import com.video.backend.video_backend.repository.TagRepository;
 import com.video.backend.video_backend.repository.VideoRepository;
+import com.video.backend.video_backend.util.VideoStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class VideoService {
     private final VideoRepository videoRepository;
     private final VideoMapper videoMapper;
+    private final VideoTranscodingService videoTranscodingService;
 
     @Value("${app.media.base-path}")
     private String mediaBasePath;
@@ -126,7 +128,7 @@ public class VideoService {
         videoRepository.deleteById(id);
     }
 
-    public VideoModel uploadVideo(String title, MultipartFile videoFile, MultipartFile thumbnailFile){
+    public VideoModel uploadVideo(String title, MultipartFile videoFile, MultipartFile thumbnailFile) {
         videoValidations(videoFile);
 
         String videoId = UUID.randomUUID().toString();
@@ -142,11 +144,14 @@ public class VideoService {
         Path videoDirectory = Paths.get(mediaBasePath, "video");
         Path videoPath = videoDirectory.resolve(videoFileName).normalize();
         Path tempPath = videoDirectory.resolve(videoId + "_original" + originalExtension).normalize();
+        Path thumbnailDirectory = Paths.get(mediaBasePath, "thumbnails");
+        Path thumbnailPath = thumbnailDirectory.resolve(thumbnailFileName).normalize();
 
         try {
             Files.createDirectories(videoDirectory);
+            Files.createDirectories(thumbnailDirectory);
         } catch (IOException e) {
-            throw new RuntimeException("No se pudo crear el directorio de videos", e);
+            throw new RuntimeException("No se pudo crear los directorios de media", e);
         }
 
         try (InputStream inputStream = videoFile.getInputStream()) {
@@ -155,114 +160,14 @@ public class VideoService {
             throw new RuntimeException("Error al guardar el archivo del video", e);
         }
 
-        try {
-            boolean alreadyCompatible = isH264Aac(tempPath);
-            List<String> ffmpegCmd;
-
-            if (alreadyCompatible) {
-                log.info("Video ya es H.264/AAC, copiando streams sin re-encodear");
-                ffmpegCmd = List.of(
-                        "ffmpeg", "-y",
-                        "-i", tempPath.toAbsolutePath().toString(),
-                        "-c", "copy",
-                        "-movflags", "+faststart",
-                        videoPath.toAbsolutePath().toString()
-                );
-            } else {
-                log.info("Transcodificando video a H.264/AAC con preset veryfast");
-                ffmpegCmd = List.of(
-                        "ffmpeg", "-y",
-                        "-i", tempPath.toAbsolutePath().toString(),
-                        "-c:v", "libx264",
-                        "-preset", "veryfast",
-                        "-threads", "0",
-                        "-c:a", "aac",
-                        "-movflags", "+faststart",
-                        videoPath.toAbsolutePath().toString()
-                );
-            }
-
-            ProcessBuilder processBuilder = new ProcessBuilder(ffmpegCmd);
-            processBuilder.redirectErrorStream(true);
-            Process process = processBuilder.start();
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    log.debug(line);
-                }
-            }
-
-            boolean finished = process.waitFor(5, TimeUnit.MINUTES);
-
-            if (!finished) {
-                process.destroyForcibly();
-                throw new RuntimeException("ffmpeg timeout al transcodificar el video");
-            }
-
-            if (process.exitValue() != 0) {
-                throw new RuntimeException("ffmpeg falló al transcodificar el video");
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Error transcodificando el video", e);
-        } finally {
-            try {
-                Files.deleteIfExists(tempPath);
-            } catch (IOException e) {
-                log.warn("No se pudo eliminar el archivo temporal: {}", tempPath);
-            }
-        }
-
-        Path thumbnailDirectory = Paths.get(mediaBasePath, "thumbnails");
-        Path thumbnailPath = thumbnailDirectory.resolve(thumbnailFileName).normalize();
-
-        try {
-            Files.createDirectories(thumbnailDirectory);
-        } catch (IOException e) {
-            throw new RuntimeException("No se pudo crear el directorio de thumbnails", e);
-        }
-
-        if (thumbnailFile != null && !thumbnailFile.isEmpty()){
-            try (InputStream inputStream = thumbnailFile.getInputStream()){
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            try (InputStream inputStream = thumbnailFile.getInputStream()) {
                 Files.copy(inputStream, thumbnailPath, StandardCopyOption.REPLACE_EXISTING);
-            }catch (IOException e){
+            } catch (IOException e) {
                 throw new IllegalArgumentException("Error al guardar el thumbnail", e);
             }
-        }else {
-            try {
-                ProcessBuilder processBuilder = new ProcessBuilder(
-                        "ffmpeg",
-                        "-y", // 🔥 importante
-                        "-i", videoPath.toAbsolutePath().toString(),
-                        "-ss", "00:00:02",
-                        "-vframes", "1",
-                        "-q:v", "2",
-                        thumbnailPath.toAbsolutePath().toString()
-                );
-
-                processBuilder.redirectErrorStream(true);
-
-                Process process = processBuilder.start();
-
-                // 🔥 Consumir el output para evitar bloqueo
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream()))) {
-
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        log.info(line); // o System.out.println(line);
-                    }
-                }
-
-                boolean finished = process.waitFor(30, TimeUnit.SECONDS);
-
-                if (!finished) {
-                    process.destroyForcibly();
-                    throw new RuntimeException("ffmpeg se quedó colgado");
-                }
-            }catch (IOException | InterruptedException e){
-                throw new RuntimeException("Error ejeccutando ffmpeg");
-            }
+        } else {
+            generateThumbnail(tempPath, thumbnailPath);
         }
 
         VideoRequest videoRequest = VideoRequest.builder()
@@ -272,8 +177,43 @@ public class VideoService {
                 .size(videoFile.getSize())
                 .build();
 
-        return saveVideo(videoRequest, videoPath, thumbnailPath);
+        VideoModel model = saveVideo(videoRequest, videoPath, thumbnailPath);
 
+        videoTranscodingService.transcode(tempPath, videoPath, model.getId());
+
+        return model;
+    }
+
+    public VideoStatusResponse getVideoStatus(Integer id) {
+        Video video = videoRepository.findById(id).orElseThrow(VideoNotFoundException::new);
+        return new VideoStatusResponse(video.getId(), video.getStatus(), video.getErrorMessage());
+    }
+
+    private void generateThumbnail(Path sourcePath, Path thumbnailPath) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "ffmpeg", "-y",
+                    "-i", sourcePath.toAbsolutePath().toString(),
+                    "-ss", "00:00:02",
+                    "-vframes", "1",
+                    "-q:v", "2",
+                    thumbnailPath.toAbsolutePath().toString()
+            );
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                reader.lines().forEach(line -> log.debug("ffmpeg thumbnail: {}", line));
+            }
+
+            boolean finished = process.waitFor(30, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                throw new RuntimeException("ffmpeg timeout al generar el thumbnail");
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Error generando thumbnail", e);
+        }
     }
 
     private void videoValidations(MultipartFile videoFile){
@@ -287,23 +227,21 @@ public class VideoService {
         }
     }
 
-    private VideoModel saveVideo(VideoRequest videoRequest, Path videoPath, Path thumbnailPath){
-
-        Video video = new Video();
-
+    private VideoModel saveVideo(VideoRequest videoRequest, Path videoPath, Path thumbnailPath) {
         try {
-            video = videoRepository.save(videoMapper.toEntity(videoRequest));
-        }catch (Exception e){
-            try{
+            Video entity = videoMapper.toEntity(videoRequest);
+            entity.setStatus(VideoStatus.PROCESANDO);
+            Video video = videoRepository.save(entity);
+            return videoMapper.toModel(video);
+        } catch (Exception e) {
+            try {
                 Files.deleteIfExists(videoPath);
                 Files.deleteIfExists(thumbnailPath);
-            }catch (IOException ex){
-                log.error("Ocurrio un error en el guardado del video, se borrar archivo guardados");
+            } catch (IOException ex) {
+                log.error("Error guardando video en db, no se pudieron borrar los archivos");
             }
             throw new RuntimeException("Error guardando video en la db", e);
         }
-
-        return videoMapper.toModel(video);
     }
 
     public Page<VideoModel> findByAllTags(List<Integer> tagIds, Pageable pageable) {
@@ -312,34 +250,4 @@ public class VideoService {
                 .map(videoMapper::toModel);
     }
 
-    private boolean isH264Aac(Path filePath) {
-        try {
-            ProcessBuilder pb = new ProcessBuilder(
-                    "ffprobe", "-v", "quiet",
-                    "-show_entries", "stream=codec_name",
-                    "-of", "csv=p=0",
-                    filePath.toAbsolutePath().toString()
-            );
-            pb.redirectErrorStream(true);
-            Process p = pb.start();
-
-            List<String> codecs;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-                codecs = reader.lines().map(String::trim).filter(s -> !s.isEmpty()).toList();
-            }
-
-            boolean finished = p.waitFor(10, TimeUnit.SECONDS);
-            if (!finished) {
-                p.destroyForcibly();
-                return false;
-            }
-
-            boolean hasH264 = codecs.stream().anyMatch("h264"::equals);
-            boolean hasAac = codecs.stream().anyMatch("aac"::equals);
-            return hasH264 && hasAac;
-        } catch (IOException | InterruptedException e) {
-            log.warn("No se pudo detectar codec del video, se asume necesita transcodificacion: {}", e.getMessage());
-            return false;
-        }
-    }
 }

@@ -1,5 +1,6 @@
 package com.video.backend.video_backend.entity;
 
+import com.video.backend.video_backend.util.VideoStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,13 @@ public class Video {
 
     @Column(name = "size")
     private Long size;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private VideoStatus status;
+
+    @Column(name = "error_message", length = 500)
+    private String errorMessage;
 
     @ManyToMany
     @JoinTable(
