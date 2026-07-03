@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
@@ -179,7 +180,18 @@ public class VideoService {
 
         VideoModel model = saveVideo(videoRequest, videoPath, thumbnailPath);
 
-        videoTranscodingService.transcode(tempPath, videoPath, model.getId());
+        try {
+            videoTranscodingService.transcode(tempPath, videoPath, model.getId());
+        } catch (TaskRejectedException e) {
+            log.error("[video={}] No se pudo encolar la transcodificacion, cola llena", model.getId(), e);
+            videoTranscodingService.markRejected(model.getId());
+            try {
+                Files.deleteIfExists(tempPath);
+            } catch (IOException ex) {
+                log.warn("[video={}] No se pudo eliminar el archivo temporal tras el rechazo: {}", model.getId(), tempPath);
+            }
+            throw new RuntimeException("El servidor esta procesando muchos videos en este momento, intente nuevamente en unos minutos", e);
+        }
 
         return model;
     }

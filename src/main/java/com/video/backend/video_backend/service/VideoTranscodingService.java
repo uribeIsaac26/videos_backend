@@ -95,6 +95,10 @@ public class VideoTranscodingService {
         });
     }
 
+    public void markRejected(Integer videoId) {
+        markError(videoId, "Cola de transcodificacion llena, intente subir el video nuevamente");
+    }
+
     private void markError(Integer videoId, String message) {
         videoRepository.findById(videoId).ifPresent(v -> {
             v.setStatus(VideoStatus.ERROR);

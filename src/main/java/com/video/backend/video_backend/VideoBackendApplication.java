@@ -21,7 +21,7 @@ public class VideoBackendApplication {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(2);
 		executor.setMaxPoolSize(4);
-		executor.setQueueCapacity(20);
+		executor.setQueueCapacity(150);
 		executor.setThreadNamePrefix("transcoding-");
 		executor.initialize();
 		return executor;
