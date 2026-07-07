@@ -37,7 +37,7 @@ spring:
 
 app:
   media:
-    base-path: /path/to/media   # videos go to {base-path}/video/, thumbnails to {base-path}/thumbnails/
+    base-path: /path/to/media   # videos go to {base-path}/video/, thumbnails to {base-path}/thumbnails/, images to {base-path}/images/
   cors:
     allowed-origins:
       - http://localhost:3000
@@ -53,7 +53,7 @@ Standard Spring Boot layered architecture: **Controller → Service → Reposito
 - `controller/` — REST endpoints
 - `service/` — business logic
 - `repository/` — Spring Data JPA interfaces
-- `entity/` — JPA entities (6 tables: `User`, `Video`, `Tag`, `VideoTagTemporal`, `VideoDuplicateGroup`, `VideoDuplicateMember`)
+- `entity/` — JPA entities (7 tables: `User`, `Video`, `Image`, `Tag`, `VideoTagTemporal`, `VideoDuplicateGroup`, `VideoDuplicateMember`)
 - `dto/` — request/response objects
 - `mapper/` — MapStruct mappers (entity ↔ DTO)
 - `security/` — JWT cookie-based auth (`JwtAuthenticationFilter`, `JwtService`, `SecurityConfig`)
@@ -68,6 +68,8 @@ Standard Spring Boot layered architecture: **Controller → Service → Reposito
 **Duplicate detection** — `VideoDuplicateGroup` and `VideoDuplicateMember` track groups of similar videos with a similarity score. Members have an `Accion` enum state: `PENDIENTE`, `ES_DUPLICADO`, `NO_ES_DUPLICADO`.
 
 **Multi-tag search** — `GET /api/videos/tag` with multiple tag params uses AND logic (video must have all specified tags).
+
+**Image gallery** — `Image` is a standalone entity (own table, `image_tag` join table) mirroring the `Video` pattern minus streaming/thumbnails/transcoding: `POST /api/images` uploads a single image, `GET /api/images/{id}/image` serves the file directly, `GET /api/images` and `GET /api/images/tag` list/filter with pagination, and tagging reuses the existing `Tag` entity via `ImageTagService`.
 
 ## Security
 

@@ -24,4 +24,7 @@ public class Tag {
 
     @ManyToMany(mappedBy = "tags")
     private Set<Video> videoSet = new HashSet<>();
+
+    @ManyToMany(mappedBy = "tags")
+    private Set<Image> imageSet = new HashSet<>();
 }
