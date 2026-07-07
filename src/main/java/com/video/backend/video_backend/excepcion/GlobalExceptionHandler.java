@@ -41,6 +41,17 @@ public class GlobalExceptionHandler {
     public void handleIOException(IOException ex) {
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex){
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
     @ExceptionHandler(TagAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleTagAlreadyExitsException(Exception ex){
         ErrorResponse errorResponse = new ErrorResponse(

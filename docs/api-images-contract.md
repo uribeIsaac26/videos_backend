@@ -118,7 +118,7 @@ await fetch("/api/images", {
 
 | Status | Motivo |
 |---|---|
-| 500 | Falta `title`/`imageFile`, o el archivo no es una imagen válida. Ver [Limitaciones conocidas](#limitaciones-conocidas) — el código HTTP no es 400. |
+| 400 | `ErrorResponse` — falta `title`/`imageFile`, o el archivo no es una imagen válida. |
 | 500 | Fallo al escribir en disco o al guardar en base de datos. |
 
 ### `GET /api/images` — Listar
@@ -207,6 +207,5 @@ Filtra imágenes que tengan **todos** los tags indicados (lógica AND, igual que
 
 ## Limitaciones conocidas
 
-- **Errores de validación en la subida devuelven 500, no 400.** El backend valida `title`/`imageFile` lanzando una excepción que cae en el handler genérico, así que hoy el front solo puede distinguir "no fue 201" — no confíes en `error.message` para mostrarlo al usuario todavía. Si esto bloquea la UX de subida, hay que priorizar el fix en el backend.
 - **No hay validación de tamaño máximo de archivo** a nivel de este módulo (puede existir un límite global de Spring en `multipart.max-file-size` fuera de este contrato).
 - **No hay redimensionado ni miniatura** — el `imageUrl` siempre sirve el archivo original. Si se necesitan miniaturas para una grilla de galería, hay que agregarlo.
