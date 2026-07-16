@@ -47,7 +47,7 @@ public class Video {
     )
     private Set<Tag> tags = new HashSet<>();
 
-    @OneToOne(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private VideoTagTemporal videoTagTemporal;
 
     @OneToMany(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
