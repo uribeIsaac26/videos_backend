@@ -19,6 +19,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -34,8 +35,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -52,7 +56,18 @@ public class VideoService {
 
     @Transactional
     public Page<VideoModel> findAll(Pageable pageable){
-            return videoRepository.findAll(pageable).map(videoMapper::toModel);
+        Page<Video> page = videoRepository.findAll(pageable);
+
+        List<Integer> ids = page.getContent().stream().map(Video::getId).toList();
+        Map<Integer, Video> withTagsById = videoRepository.findAllWithTagsByIdIn(ids).stream()
+                .collect(Collectors.toMap(Video::getId, Function.identity()));
+
+        List<VideoModel> models = ids.stream()
+                .map(withTagsById::get)
+                .map(videoMapper::toModel)
+                .toList();
+
+        return new PageImpl<>(models, pageable, page.getTotalElements());
     }
 
     public Resource findThumbnailByIdVideo(Integer id){

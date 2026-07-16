@@ -3,7 +3,6 @@ package com.video.backend.video_backend.repository;
 import com.video.backend.video_backend.entity.Video;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,9 +15,8 @@ public interface VideoRepository extends JpaRepository<Video, Integer> {
     @Query("SELECT DISTINCT v FROM Video v LEFT JOIN FETCH v.tags")
     Page<Video> findAllWithTags(Pageable pageable);
 
-    @Override
-    @EntityGraph(attributePaths = "tags")
-    Page<Video> findAll(Pageable pageable);
+    @Query("SELECT DISTINCT v FROM Video v LEFT JOIN FETCH v.tags WHERE v.id IN :ids")
+    List<Video> findAllWithTagsByIdIn(@Param("ids") List<Integer> ids);
 
     @Query("SELECT v FROM Video v " +
             "JOIN v.tags t " +
