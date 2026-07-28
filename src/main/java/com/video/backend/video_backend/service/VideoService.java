@@ -217,11 +217,23 @@ public class VideoService {
     }
 
     private void generateThumbnail(Path sourcePath, Path thumbnailPath) {
+        runFfmpegThumbnail(sourcePath, thumbnailPath, "00:00:02");
+
+        if (!Files.exists(thumbnailPath)) {
+            runFfmpegThumbnail(sourcePath, thumbnailPath, "00:00:00");
+        }
+
+        if (!Files.exists(thumbnailPath)) {
+            throw new RuntimeException("ffmpeg no genero el thumbnail");
+        }
+    }
+
+    private void runFfmpegThumbnail(Path sourcePath, Path thumbnailPath, String seekTime) {
         try {
             ProcessBuilder pb = new ProcessBuilder(
                     "ffmpeg", "-y",
                     "-i", sourcePath.toAbsolutePath().toString(),
-                    "-ss", "00:00:02",
+                    "-ss", seekTime,
                     "-vframes", "1",
                     "-q:v", "2",
                     thumbnailPath.toAbsolutePath().toString()
