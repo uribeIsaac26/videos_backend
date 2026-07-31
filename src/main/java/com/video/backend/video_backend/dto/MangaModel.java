@@ -10,7 +10,6 @@ public record MangaModel(
         String title,
         String japaneseTitle,
         String language,
-        String languageLocalName,
         TipoManga tipo,
         LocalDateTime fechaPublicacion,
         String portadaUrl,

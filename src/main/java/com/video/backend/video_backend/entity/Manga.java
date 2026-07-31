@@ -33,9 +33,6 @@ public class Manga {
     @Column(name = "language")
     private String language;
 
-    @Column(name = "language_local_name")
-    private String languageLocalName;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo")
     private TipoManga tipo;

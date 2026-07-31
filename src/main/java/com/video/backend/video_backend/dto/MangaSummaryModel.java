@@ -9,7 +9,6 @@ public record MangaSummaryModel(
         String title,
         TipoManga tipo,
         String language,
-        String languageLocalName,
         LocalDateTime fechaPublicacion,
         String portadaUrl
 ) {

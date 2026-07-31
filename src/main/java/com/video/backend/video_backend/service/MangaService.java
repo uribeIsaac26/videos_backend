@@ -1,6 +1,7 @@
 package com.video.backend.video_backend.service;
 
 import com.video.backend.video_backend.dto.MangaModel;
+import com.video.backend.video_backend.dto.MangaSearchCriteria;
 import com.video.backend.video_backend.dto.MangaSummaryModel;
 import com.video.backend.video_backend.entity.Manga;
 import com.video.backend.video_backend.entity.MangaPage;
@@ -17,6 +18,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
@@ -31,6 +33,7 @@ public class MangaService {
     private final MangaRepository mangaRepository;
     private final MangaPageRepository mangaPageRepository;
     private final MangaMapper mangaMapper;
+    private final MangaSearchQueryParser mangaSearchQueryParser;
 
     @Value("${app.media.base-path}")
     private String mediaBasePath;
@@ -60,6 +63,12 @@ public class MangaService {
 
     public Page<MangaSummaryModel> findByParody(String nombre, Pageable pageable) {
         return mangaRepository.findByMetadataValue(TipoMetadatoManga.PARODY, nombre, pageable).map(mangaMapper::toSummary);
+    }
+
+    public Page<MangaSummaryModel> search(String q, Pageable pageable) {
+        MangaSearchCriteria criteria = mangaSearchQueryParser.parse(q);
+        Specification<Manga> spec = MangaSpecifications.fromCriteria(criteria);
+        return mangaRepository.findAll(spec, pageable).map(mangaMapper::toSummary);
     }
 
     public Resource findPaginaImagen(Integer mangaId, Integer orden) {

@@ -78,4 +78,11 @@ public class MangaController {
             Pageable pageable) {
         return ResponseEntity.ok(mangaService.findByParody(nombre, pageable));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<MangaSummaryModel>> search(
+            @RequestParam String q,
+            Pageable pageable) {
+        return ResponseEntity.ok(mangaService.search(q, pageable));
+    }
 }

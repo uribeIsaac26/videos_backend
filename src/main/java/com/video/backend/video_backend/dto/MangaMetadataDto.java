@@ -11,7 +11,6 @@ public record MangaMetadataDto(
         @JsonProperty("title") String title,
         @JsonProperty("japaneseTitle") String japaneseTitle,
         @JsonProperty("language") String language,
-        @JsonProperty("languageLocalname") String languageLocalname,
         @JsonProperty("type") String type,
         @JsonProperty("date") String date,
         @JsonProperty("artists") List<String> artists,

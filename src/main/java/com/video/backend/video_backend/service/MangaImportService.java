@@ -104,7 +104,6 @@ public class MangaImportService {
         manga.setTitle(dto.title());
         manga.setJapaneseTitle(dto.japaneseTitle());
         manga.setLanguage(dto.language());
-        manga.setLanguageLocalName(dto.languageLocalname());
         manga.setTipo(mapTipo(dto.type()));
         manga.setFechaPublicacion(parseFecha(dto.date()));
         manga.setCoverUrl(dto.coverUrl());
