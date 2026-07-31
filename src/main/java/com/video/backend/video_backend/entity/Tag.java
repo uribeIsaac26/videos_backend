@@ -27,4 +27,7 @@ public class Tag {
 
     @ManyToMany(mappedBy = "tags")
     private Set<Image> imageSet = new HashSet<>();
+
+    @OneToMany(mappedBy = "tag")
+    private Set<MangaTag> mangaTagSet = new HashSet<>();
 }

@@ -1,0 +1,138 @@
+package com.video.backend.video_backend.service;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.util.stream.Stream;
+
+@RequiredArgsConstructor
+@Service
+@Slf4j
+public class MangaIncomingScanService {
+
+    private final ObjectMapper objectMapper;
+
+    @Value("${app.media.base-path}")
+    private String mediaBasePath;
+
+    @Value("${app.manga.min-age-ms:60000}")
+    private long minAgeMs;
+
+    private static final String METADATA_FILE_NAME = "metadata.json";
+
+    @Scheduled(fixedDelayString = "${app.manga.scan-interval-ms:300000}")
+    public void scanIncomingFolder() {
+        Path incomingDir = Paths.get(mediaBasePath, "mangaIncoming");
+        Path libraryDir = Paths.get(mediaBasePath, "mangaLibrary");
+
+        try {
+            Files.createDirectories(incomingDir);
+            Files.createDirectories(libraryDir);
+        } catch (IOException e) {
+            log.error("No se pudo crear los directorios de mangaIncoming/mangaLibrary", e);
+            return;
+        }
+
+        try (Stream<Path> entries = Files.list(incomingDir)) {
+            entries.filter(Files::isDirectory).forEach(carpeta -> procesarCarpeta(carpeta, libraryDir));
+        } catch (IOException e) {
+            log.error("No se pudo listar el contenido de mangaIncoming", e);
+        }
+    }
+
+    private void procesarCarpeta(Path carpeta, Path libraryDir) {
+        Path metadataPath = carpeta.resolve(METADATA_FILE_NAME);
+
+        if (!Files.exists(metadataPath)) {
+            log.warn("Carpeta '{}' sin {}, se omite", carpeta.getFileName(), METADATA_FILE_NAME);
+            return;
+        }
+
+        if (!esCarpetaCompleta(carpeta, metadataPath)) {
+            return;
+        }
+
+        Path destino = libraryDir.resolve(carpeta.getFileName());
+        if (Files.exists(destino)) {
+            log.warn("Ya existe una carpeta '{}' en mangaLibrary, se omite para no sobreescribir", carpeta.getFileName());
+            return;
+        }
+
+        try {
+            moverCarpeta(carpeta, destino);
+            log.info("Manga '{}' movido de mangaIncoming a mangaLibrary", carpeta.getFileName());
+        } catch (IOException e) {
+            log.error("No se pudo mover la carpeta '{}' a mangaLibrary", carpeta.getFileName(), e);
+        }
+    }
+
+    private boolean esCarpetaCompleta(Path carpeta, Path metadataPath) {
+        JsonNode metadata;
+        try {
+            metadata = objectMapper.readTree(metadataPath);
+        } catch (JacksonException e) {
+            log.warn("No se pudo leer {} en '{}', se omite", METADATA_FILE_NAME, carpeta.getFileName(), e);
+            return false;
+        }
+
+        JsonNode files = metadata.get("files");
+        if (files == null || !files.isArray() || files.isEmpty()) {
+            log.warn("Carpeta '{}' tiene un {} sin arreglo 'files' valido, se omite", carpeta.getFileName(), METADATA_FILE_NAME);
+            return false;
+        }
+
+        for (JsonNode file : files) {
+            String nombreArchivo = file.path("name").asString(null);
+            if (nombreArchivo == null || !Files.exists(carpeta.resolve(nombreArchivo))) {
+                log.warn("Carpeta '{}' incompleta (falta '{}'), se omite en este ciclo", carpeta.getFileName(), nombreArchivo);
+                return false;
+            }
+        }
+
+        return sinCambiosRecientes(carpeta);
+    }
+
+    private boolean sinCambiosRecientes(Path carpeta) {
+        try (Stream<Path> entries = Files.walk(carpeta)) {
+            Instant limite = Instant.now().minusMillis(minAgeMs);
+            boolean modificadoRecientemente = entries
+                    .map(this::lastModifiedTime)
+                    .anyMatch(instante -> instante.isAfter(limite));
+
+            if (modificadoRecientemente) {
+                log.debug("Carpeta '{}' modificada muy recientemente, se espera al siguiente ciclo", carpeta.getFileName());
+            }
+            return !modificadoRecientemente;
+        } catch (IOException e) {
+            log.warn("No se pudo verificar la antiguedad de '{}', se omite", carpeta.getFileName(), e);
+            return false;
+        }
+    }
+
+    private Instant lastModifiedTime(Path path) {
+        try {
+            FileTime fileTime = Files.getLastModifiedTime(path);
+            return fileTime.toInstant();
+        } catch (IOException e) {
+            return Instant.now();
+        }
+    }
+
+    private void moverCarpeta(Path origen, Path destino) throws IOException {
+        try {
+            Files.move(origen, destino, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(origen, destino);
+        }
+    }
+}
