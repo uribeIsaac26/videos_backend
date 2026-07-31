@@ -91,12 +91,21 @@ public class MangaIncomingScanService {
             return false;
         }
 
-        for (JsonNode file : files) {
-            String nombreArchivo = file.path("name").asString(null);
-            if (nombreArchivo == null || !Files.exists(carpeta.resolve(nombreArchivo))) {
-                log.warn("Carpeta '{}' incompleta (falta '{}'), se omite en este ciclo", carpeta.getFileName(), nombreArchivo);
-                return false;
-            }
+        long archivosEnCarpeta;
+        try (Stream<Path> entries = Files.list(carpeta)) {
+            archivosEnCarpeta = entries
+                    .filter(Files::isRegularFile)
+                    .filter(archivo -> !archivo.getFileName().toString().equals(METADATA_FILE_NAME))
+                    .count();
+        } catch (IOException e) {
+            log.warn("No se pudo listar el contenido de '{}', se omite", carpeta.getFileName(), e);
+            return false;
+        }
+
+        if (archivosEnCarpeta != files.size()) {
+            log.warn("Carpeta '{}' incompleta (se esperaban {} archivos, hay {}), se omite en este ciclo",
+                    carpeta.getFileName(), files.size(), archivosEnCarpeta);
+            return false;
         }
 
         return sinCambiosRecientes(carpeta);

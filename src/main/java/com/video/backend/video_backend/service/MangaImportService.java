@@ -22,6 +22,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -108,7 +110,7 @@ public class MangaImportService {
         manga.setCoverUrl(dto.coverUrl());
         manga.setCarpeta("mangaLibrary/" + carpeta.getFileName());
 
-        agregarPaginas(manga, dto.files());
+        agregarPaginas(manga, carpeta, dto.files());
         agregarTags(manga, dto.tags());
         agregarMetadataValues(manga, TipoMetadatoManga.ARTIST, dto.artists());
         agregarMetadataValues(manga, TipoMetadatoManga.GROUP, dto.groups());
@@ -117,15 +119,31 @@ public class MangaImportService {
         mangaRepository.save(manga);
     }
 
-    private void agregarPaginas(Manga manga, List<MangaMetadataFileDto> files) {
+    private void agregarPaginas(Manga manga, Path carpeta, List<MangaMetadataFileDto> files) {
         if (files == null) return;
 
-        int orden = 1;
-        for (MangaMetadataFileDto file : files) {
+        List<Path> archivosReales;
+        try (Stream<Path> entries = Files.list(carpeta)) {
+            archivosReales = entries
+                    .filter(Files::isRegularFile)
+                    .filter(archivo -> !archivo.getFileName().toString().equals(METADATA_FILE_NAME))
+                    .sorted(Comparator.comparing(archivo -> archivo.getFileName().toString()))
+                    .toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException("No se pudo listar los archivos de '" + carpeta.getFileName() + "'", e);
+        }
+
+        if (archivosReales.size() != files.size()) {
+            throw new IllegalStateException("La carpeta '" + carpeta.getFileName() + "' tiene " + archivosReales.size()
+                    + " archivos pero el metadata declara " + files.size());
+        }
+
+        for (int i = 0; i < files.size(); i++) {
+            MangaMetadataFileDto file = files.get(i);
             MangaPage pagina = new MangaPage();
             pagina.setManga(manga);
-            pagina.setNombreArchivo(file.name());
-            pagina.setOrden(orden++);
+            pagina.setNombreArchivo(archivosReales.get(i).getFileName().toString());
+            pagina.setOrden(i + 1);
             pagina.setAncho(file.width());
             pagina.setAlto(file.height());
             pagina.setHash(file.hash());
