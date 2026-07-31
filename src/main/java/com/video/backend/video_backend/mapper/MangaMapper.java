@@ -7,6 +7,7 @@ import com.video.backend.video_backend.dto.MangaTagResponse;
 import com.video.backend.video_backend.entity.Manga;
 import com.video.backend.video_backend.entity.MangaMetadataValue;
 import com.video.backend.video_backend.entity.MangaPage;
+import com.video.backend.video_backend.entity.MangaTag;
 import com.video.backend.video_backend.util.TipoMetadatoManga;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -43,8 +44,20 @@ public interface MangaMapper {
 
     default List<MangaTagResponse> toTagResponses(Manga manga) {
         return manga.getMangaTags().stream()
-                .map(mangaTag -> new MangaTagResponse(mangaTag.getTag().getName(), mangaTag.getEsMale(), mangaTag.getEsFemale()))
+                .map(mangaTag -> new MangaTagResponse(nombreConGenero(mangaTag), mangaTag.getEsMale(), mangaTag.getEsFemale()))
                 .toList();
+    }
+
+    default String nombreConGenero(MangaTag mangaTag) {
+        String nombre = mangaTag.getTag().getName();
+
+        if (Boolean.TRUE.equals(mangaTag.getEsMale())) {
+            return "male:" + nombre;
+        }
+        if (Boolean.TRUE.equals(mangaTag.getEsFemale())) {
+            return "female:" + nombre;
+        }
+        return nombre;
     }
 
     default List<MangaPageResponse> toPaginaResponses(Manga manga) {

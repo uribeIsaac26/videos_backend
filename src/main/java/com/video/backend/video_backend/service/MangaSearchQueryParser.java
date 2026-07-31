@@ -15,6 +15,7 @@ import java.util.List;
  * - "male:tag" / "female:tag" exigen un tag con ese genero
  * - "tag:tag" exige el tag sin importar el genero
  * - el prefijo "-" niega cualquiera de los anteriores
+ * - valores con espacios se escriben entre comillas, ej. tag:"full color"
  */
 @Component
 @Slf4j
@@ -29,7 +30,7 @@ public class MangaSearchQueryParser {
             return new MangaSearchCriteria(null, incluir, excluir);
         }
 
-        for (String token : query.trim().split("\\s+")) {
+        for (String token : tokenizar(query)) {
             boolean negado = token.startsWith("-");
             String cuerpo = negado ? token.substring(1) : token;
 
@@ -67,5 +68,36 @@ public class MangaSearchQueryParser {
         }
 
         return new MangaSearchCriteria(language, incluir, excluir);
+    }
+
+    private List<String> tokenizar(String query) {
+        List<String> tokens = new ArrayList<>();
+        StringBuilder actual = new StringBuilder();
+        boolean dentroDeComillas = false;
+
+        for (int i = 0; i < query.length(); i++) {
+            char c = query.charAt(i);
+
+            if (c == '"') {
+                dentroDeComillas = !dentroDeComillas;
+                continue;
+            }
+
+            if (Character.isWhitespace(c) && !dentroDeComillas) {
+                if (!actual.isEmpty()) {
+                    tokens.add(actual.toString());
+                    actual.setLength(0);
+                }
+                continue;
+            }
+
+            actual.append(c);
+        }
+
+        if (!actual.isEmpty()) {
+            tokens.add(actual.toString());
+        }
+
+        return tokens;
     }
 }
