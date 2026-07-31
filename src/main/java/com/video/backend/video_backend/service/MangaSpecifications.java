@@ -19,22 +19,22 @@ public final class MangaSpecifications {
     }
 
     public static Specification<Manga> fromCriteria(MangaSearchCriteria criteria) {
-        Specification<Manga> spec = Specification.where((Specification<Manga>) null);
+        List<Specification<Manga>> specs = new ArrayList<>();
 
         if (criteria.language() != null) {
             String language = criteria.language();
-            spec = spec.and((root, query, cb) -> cb.equal(cb.lower(root.get("language")), language.toLowerCase()));
+            specs.add((root, query, cb) -> cb.equal(cb.lower(root.get("language")), language.toLowerCase()));
         }
 
         for (MangaTagCriterio criterio : criteria.tagsIncluir()) {
-            spec = spec.and(tieneTag(criterio));
+            specs.add(tieneTag(criterio));
         }
 
         for (MangaTagCriterio criterio : criteria.tagsExcluir()) {
-            spec = spec.and(Specification.not(tieneTag(criterio)));
+            specs.add(Specification.not(tieneTag(criterio)));
         }
 
-        return spec;
+        return Specification.allOf(specs);
     }
 
     private static Specification<Manga> tieneTag(MangaTagCriterio criterio) {
