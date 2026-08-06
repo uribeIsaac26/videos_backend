@@ -9,8 +9,10 @@ import com.video.backend.video_backend.entity.MangaPage;
 import com.video.backend.video_backend.excepcion.MangaNotFoundException;
 import com.video.backend.video_backend.excepcion.MangaPageNotFoundException;
 import com.video.backend.video_backend.mapper.MangaMapper;
+import com.video.backend.video_backend.repository.MangaMetadataValueRepository;
 import com.video.backend.video_backend.repository.MangaPageRepository;
 import com.video.backend.video_backend.repository.MangaRepository;
+import com.video.backend.video_backend.repository.TagRepository;
 import com.video.backend.video_backend.util.TipoMetadatoManga;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,20 +21,26 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 public class MangaService {
 
+    private static final int LIMITE_SUGERENCIAS_POR_CATEGORIA = 5;
+
     private final MangaRepository mangaRepository;
     private final MangaPageRepository mangaPageRepository;
+    private final TagRepository tagRepository;
+    private final MangaMetadataValueRepository mangaMetadataValueRepository;
     private final MangaMapper mangaMapper;
     private final MangaSearchQueryParser mangaSearchQueryParser;
 
@@ -76,6 +84,22 @@ public class MangaService {
         MangaSearchCriteria criteria = mangaSearchQueryParser.parse(q);
         Specification<Manga> spec = MangaSpecifications.fromCriteria(criteria);
         return mangaRepository.findAll(spec, pageable).map(mangaMapper::toSummary);
+    }
+
+    public List<String> sugerencias(String q) {
+        if (q == null || q.isBlank()) return List.of();
+
+        Pageable limite = PageRequest.of(0, LIMITE_SUGERENCIAS_POR_CATEGORIA);
+        List<String> sugerencias = new ArrayList<>();
+
+        mangaRepository.findLanguagesStartingWith(q, limite)
+                .forEach(valor -> sugerencias.add("language:" + valor));
+        tagRepository.findNamesStartingWith(q, limite)
+                .forEach(valor -> sugerencias.add("tag:" + valor));
+        mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.GROUP, q, limite)
+                .forEach(valor -> sugerencias.add("group:" + valor));
+
+        return sugerencias;
     }
 
     public Page<MangaPageResponse> findPaginas(Integer mangaId, Pageable pageable) {

@@ -93,4 +93,9 @@ public class MangaController {
             Pageable pageable) {
         return ResponseEntity.ok(mangaService.search(q, pageable));
     }
+
+    @GetMapping("/sugerencias")
+    public ResponseEntity<List<String>> sugerencias(@RequestParam String q) {
+        return ResponseEntity.ok(mangaService.sugerencias(q));
+    }
 }

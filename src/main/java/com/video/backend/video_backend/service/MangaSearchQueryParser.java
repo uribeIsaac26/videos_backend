@@ -10,11 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parsea consultas de busqueda tipo "spanish male:bajo -female:alto":
+ * Parsea consultas de busqueda tipo "spanish male:bajo -female:alto group:circulo":
  * - una palabra suelta filtra por idioma
+ * - "language:idioma" filtra por idioma explicitamente
  * - "male:tag" / "female:tag" exigen un tag con ese genero
  * - "tag:tag" exige el tag sin importar el genero
- * - el prefijo "-" niega cualquiera de los anteriores
+ * - "group:nombre" exige un grupo con ese nombre
+ * - el prefijo "-" niega cualquiera de los anteriores (excepto el idioma en palabra suelta)
  * - valores con espacios se escriben entre comillas, ej. tag:"full color"
  */
 @Component
@@ -24,10 +26,12 @@ public class MangaSearchQueryParser {
     public MangaSearchCriteria parse(String query) {
         List<MangaTagCriterio> incluir = new ArrayList<>();
         List<MangaTagCriterio> excluir = new ArrayList<>();
+        List<String> gruposIncluir = new ArrayList<>();
+        List<String> gruposExcluir = new ArrayList<>();
         String language = null;
 
         if (query == null || query.isBlank()) {
-            return new MangaSearchCriteria(null, incluir, excluir);
+            return new MangaSearchCriteria(null, incluir, excluir, gruposIncluir, gruposExcluir);
         }
 
         for (String token : tokenizar(query)) {
@@ -51,6 +55,20 @@ public class MangaSearchQueryParser {
 
             if (valor.isBlank()) continue;
 
+            if (prefijo.equals("language")) {
+                if (negado) {
+                    log.warn("Se ignora el termino de idioma negado '{}': no soportado", token);
+                } else {
+                    language = valor;
+                }
+                continue;
+            }
+
+            if (prefijo.equals("group")) {
+                (negado ? gruposExcluir : gruposIncluir).add(valor);
+                continue;
+            }
+
             GeneroTag genero = switch (prefijo) {
                 case "male" -> GeneroTag.MALE;
                 case "female" -> GeneroTag.FEMALE;
@@ -67,7 +85,7 @@ public class MangaSearchQueryParser {
             (negado ? excluir : incluir).add(criterio);
         }
 
-        return new MangaSearchCriteria(language, incluir, excluir);
+        return new MangaSearchCriteria(language, incluir, excluir, gruposIncluir, gruposExcluir);
     }
 
     private List<String> tokenizar(String query) {

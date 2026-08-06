@@ -34,4 +34,9 @@ public interface MangaRepository extends JpaRepository<Manga, Integer>, JpaSpeci
             @Param("valor") String valor,
             Pageable pageable
     );
+
+    @Query("SELECT DISTINCT m.language FROM Manga m " +
+            "WHERE m.language IS NOT NULL AND LOWER(m.language) LIKE LOWER(CONCAT(:prefijo, '%')) " +
+            "ORDER BY m.language")
+    List<String> findLanguagesStartingWith(@Param("prefijo") String prefijo, Pageable pageable);
 }
