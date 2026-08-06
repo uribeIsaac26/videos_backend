@@ -31,7 +31,9 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
@@ -153,6 +155,8 @@ public class MangaImportService {
     private void agregarTags(Manga manga, List<MangaMetadataTagDto> tags) {
         if (tags == null) return;
 
+        Map<Integer, MangaTag> mangaTagsPorTagId = new LinkedHashMap<>();
+
         for (MangaMetadataTagDto tagDto : tags) {
             Tag tag = tagRepository.findByName(tagDto.tag()).orElseGet(() -> {
                 Tag nuevo = new Tag();
@@ -160,13 +164,24 @@ public class MangaImportService {
                 return tagRepository.save(nuevo);
             });
 
-            MangaTag mangaTag = new MangaTag();
-            mangaTag.setManga(manga);
-            mangaTag.setTag(tag);
-            mangaTag.setEsMale(Integer.valueOf(1).equals(tagDto.male()));
-            mangaTag.setEsFemale(Integer.valueOf(1).equals(tagDto.female()));
-            manga.getMangaTags().add(mangaTag);
+            MangaTag mangaTag = mangaTagsPorTagId.computeIfAbsent(tag.getId(), id -> {
+                MangaTag nuevo = new MangaTag();
+                nuevo.setManga(manga);
+                nuevo.setTag(tag);
+                nuevo.setEsMale(false);
+                nuevo.setEsFemale(false);
+                return nuevo;
+            });
+
+            if (Integer.valueOf(1).equals(tagDto.male())) {
+                mangaTag.setEsMale(true);
+            }
+            if (Integer.valueOf(1).equals(tagDto.female())) {
+                mangaTag.setEsFemale(true);
+            }
         }
+
+        manga.getMangaTags().addAll(mangaTagsPorTagId.values());
     }
 
     private void agregarMetadataValues(Manga manga, TipoMetadatoManga tipo, List<String> valores) {
