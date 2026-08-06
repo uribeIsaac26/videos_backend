@@ -1,6 +1,7 @@
 package com.video.backend.video_backend.service;
 
 import com.video.backend.video_backend.dto.MangaModel;
+import com.video.backend.video_backend.dto.MangaPageResponse;
 import com.video.backend.video_backend.dto.MangaSearchCriteria;
 import com.video.backend.video_backend.dto.MangaSummaryModel;
 import com.video.backend.video_backend.entity.Manga;
@@ -75,6 +76,15 @@ public class MangaService {
         MangaSearchCriteria criteria = mangaSearchQueryParser.parse(q);
         Specification<Manga> spec = MangaSpecifications.fromCriteria(criteria);
         return mangaRepository.findAll(spec, pageable).map(mangaMapper::toSummary);
+    }
+
+    public Page<MangaPageResponse> findPaginas(Integer mangaId, Pageable pageable) {
+        if (!mangaRepository.existsById(mangaId)) {
+            throw new MangaNotFoundException();
+        }
+
+        return mangaPageRepository.findByMangaIdOrderByOrden(mangaId, pageable)
+                .map(pagina -> mangaMapper.toPaginaResponse(mangaId, pagina));
     }
 
     public Resource findPaginaImagen(Integer mangaId, Integer orden) {

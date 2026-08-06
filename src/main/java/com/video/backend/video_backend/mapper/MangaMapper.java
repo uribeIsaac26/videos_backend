@@ -73,11 +73,15 @@ public interface MangaMapper {
     default List<MangaPageResponse> toPaginaResponses(Manga manga) {
         return manga.getPaginas().stream()
                 .sorted(Comparator.comparing(MangaPage::getOrden))
-                .map(pagina -> new MangaPageResponse(
-                        pagina.getOrden(),
-                        pagina.getAncho(),
-                        pagina.getAlto(),
-                        "/api/mangas/" + manga.getId() + "/paginas/" + pagina.getOrden() + "/imagen"))
+                .map(pagina -> toPaginaResponse(manga.getId(), pagina))
                 .toList();
+    }
+
+    default MangaPageResponse toPaginaResponse(Integer mangaId, MangaPage pagina) {
+        return new MangaPageResponse(
+                pagina.getOrden(),
+                pagina.getAncho(),
+                pagina.getAlto(),
+                "/api/mangas/" + mangaId + "/paginas/" + pagina.getOrden() + "/imagen");
     }
 }

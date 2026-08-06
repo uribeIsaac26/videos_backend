@@ -1,6 +1,7 @@
 package com.video.backend.video_backend.controller;
 
 import com.video.backend.video_backend.dto.MangaModel;
+import com.video.backend.video_backend.dto.MangaPageResponse;
 import com.video.backend.video_backend.dto.MangaSummaryModel;
 import com.video.backend.video_backend.service.MangaService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,13 @@ public class MangaController {
     @GetMapping("{id}")
     public ResponseEntity<MangaModel> findById(@PathVariable Integer id) {
         return ResponseEntity.ok(mangaService.findById(id));
+    }
+
+    @GetMapping("{mangaId}/paginas")
+    public ResponseEntity<Page<MangaPageResponse>> findPaginas(
+            @PathVariable Integer mangaId,
+            Pageable pageable) {
+        return ResponseEntity.ok(mangaService.findPaginas(mangaId, pageable));
     }
 
     @GetMapping("{mangaId}/paginas/{orden}/imagen")
