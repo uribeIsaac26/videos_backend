@@ -38,6 +38,7 @@ public class MangaService {
     @Value("${app.media.base-path}")
     private String mediaBasePath;
 
+    @Transactional
     public Page<MangaSummaryModel> findAll(Pageable pageable) {
         return mangaRepository.findAll(pageable).map(mangaMapper::toSummary);
     }
@@ -48,23 +49,28 @@ public class MangaService {
         return mangaMapper.toModel(manga);
     }
 
+    @Transactional
     public Page<MangaSummaryModel> findByAllTags(List<Integer> tagIds, Pageable pageable) {
         Long tagCount = (long) tagIds.size();
         return mangaRepository.findByAllTags(tagIds, tagCount, pageable).map(mangaMapper::toSummary);
     }
 
+    @Transactional
     public Page<MangaSummaryModel> findByArtist(String nombre, Pageable pageable) {
         return mangaRepository.findByMetadataValue(TipoMetadatoManga.ARTIST, nombre, pageable).map(mangaMapper::toSummary);
     }
 
+    @Transactional
     public Page<MangaSummaryModel> findByGroup(String nombre, Pageable pageable) {
         return mangaRepository.findByMetadataValue(TipoMetadatoManga.GROUP, nombre, pageable).map(mangaMapper::toSummary);
     }
 
+    @Transactional
     public Page<MangaSummaryModel> findByParody(String nombre, Pageable pageable) {
         return mangaRepository.findByMetadataValue(TipoMetadatoManga.PARODY, nombre, pageable).map(mangaMapper::toSummary);
     }
 
+    @Transactional
     public Page<MangaSummaryModel> search(String q, Pageable pageable) {
         MangaSearchCriteria criteria = mangaSearchQueryParser.parse(q);
         Specification<Manga> spec = MangaSpecifications.fromCriteria(criteria);

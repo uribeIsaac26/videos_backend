@@ -21,6 +21,8 @@ import java.util.List;
 public interface MangaMapper {
 
     @Mapping(target = "portadaUrl", expression = "java(portadaUrl(manga))")
+    @Mapping(target = "artists", expression = "java(valoresPorTipo(manga, TipoMetadatoManga.ARTIST))")
+    @Mapping(target = "tags", expression = "java(primerosTags(manga, 10))")
     MangaSummaryModel toSummary(Manga manga);
 
     @Mapping(target = "portadaUrl", expression = "java(portadaUrl(manga))")
@@ -44,6 +46,13 @@ public interface MangaMapper {
 
     default List<MangaTagResponse> toTagResponses(Manga manga) {
         return manga.getMangaTags().stream()
+                .map(mangaTag -> new MangaTagResponse(nombreConGenero(mangaTag), mangaTag.getEsMale(), mangaTag.getEsFemale()))
+                .toList();
+    }
+
+    default List<MangaTagResponse> primerosTags(Manga manga, int limite) {
+        return manga.getMangaTags().stream()
+                .limit(limite)
                 .map(mangaTag -> new MangaTagResponse(nombreConGenero(mangaTag), mangaTag.getEsMale(), mangaTag.getEsFemale()))
                 .toList();
     }
