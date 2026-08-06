@@ -13,6 +13,7 @@ public record MangaSummaryModel(
         LocalDateTime fechaPublicacion,
         String portadaUrl,
         List<String> artists,
+        List<String> parodys,
         List<MangaTagResponse> tags
 ) {
 }

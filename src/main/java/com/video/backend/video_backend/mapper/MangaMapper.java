@@ -22,6 +22,7 @@ public interface MangaMapper {
 
     @Mapping(target = "portadaUrl", expression = "java(portadaUrl(manga))")
     @Mapping(target = "artists", expression = "java(valoresPorTipo(manga, TipoMetadatoManga.ARTIST))")
+    @Mapping(target = "parodys", expression = "java(valoresPorTipo(manga, TipoMetadatoManga.PARODY))")
     @Mapping(target = "tags", expression = "java(primerosTags(manga, 10))")
     MangaSummaryModel toSummary(Manga manga);
 
