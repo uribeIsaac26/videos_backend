@@ -52,6 +52,14 @@ public final class MangaSpecifications {
             specs.add(Specification.not(tieneMetadata(TipoMetadatoManga.ARTIST, artista)));
         }
 
+        for (String parodia : criteria.parodiasIncluir()) {
+            specs.add(tieneMetadata(TipoMetadatoManga.PARODY, parodia));
+        }
+
+        for (String parodia : criteria.parodiasExcluir()) {
+            specs.add(Specification.not(tieneMetadata(TipoMetadatoManga.PARODY, parodia)));
+        }
+
         return Specification.allOf(specs);
     }
 

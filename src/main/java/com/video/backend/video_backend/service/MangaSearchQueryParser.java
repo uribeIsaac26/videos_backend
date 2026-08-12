@@ -17,6 +17,7 @@ import java.util.List;
  * - "tag:tag" exige el tag sin importar el genero
  * - "group:nombre" exige un grupo con ese nombre
  * - "artist:nombre" exige un artista con ese nombre
+ * - "parody:nombre" exige una parodia con ese nombre
  * - el prefijo "-" niega cualquiera de los anteriores (excepto el idioma en palabra suelta)
  * - valores con espacios se escriben entre comillas, ej. tag:"full color"
  */
@@ -31,10 +32,12 @@ public class MangaSearchQueryParser {
         List<String> gruposExcluir = new ArrayList<>();
         List<String> artistasIncluir = new ArrayList<>();
         List<String> artistasExcluir = new ArrayList<>();
+        List<String> parodiasIncluir = new ArrayList<>();
+        List<String> parodiasExcluir = new ArrayList<>();
         String language = null;
 
         if (query == null || query.isBlank()) {
-            return new MangaSearchCriteria(null, incluir, excluir, gruposIncluir, gruposExcluir, artistasIncluir, artistasExcluir);
+            return new MangaSearchCriteria(null, incluir, excluir, gruposIncluir, gruposExcluir, artistasIncluir, artistasExcluir, parodiasIncluir, parodiasExcluir);
         }
 
         for (String token : tokenizar(query)) {
@@ -77,6 +80,11 @@ public class MangaSearchQueryParser {
                 continue;
             }
 
+            if (prefijo.equals("parody")) {
+                (negado ? parodiasExcluir : parodiasIncluir).add(valor);
+                continue;
+            }
+
             GeneroTag genero = switch (prefijo) {
                 case "male" -> GeneroTag.MALE;
                 case "female" -> GeneroTag.FEMALE;
@@ -93,7 +101,7 @@ public class MangaSearchQueryParser {
             (negado ? excluir : incluir).add(criterio);
         }
 
-        return new MangaSearchCriteria(language, incluir, excluir, gruposIncluir, gruposExcluir, artistasIncluir, artistasExcluir);
+        return new MangaSearchCriteria(language, incluir, excluir, gruposIncluir, gruposExcluir, artistasIncluir, artistasExcluir, parodiasIncluir, parodiasExcluir);
     }
 
     private List<String> tokenizar(String query) {

@@ -101,6 +101,8 @@ public class MangaService {
                 .forEach(valor -> sugerencias.add("group:" + valor));
         mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.ARTIST, q, limite)
                 .forEach(valor -> sugerencias.add("artist:" + valor));
+        mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.PARODY, q, limite)
+                .forEach(valor -> sugerencias.add("parody:" + valor));
 
         return sugerencias;
     }
