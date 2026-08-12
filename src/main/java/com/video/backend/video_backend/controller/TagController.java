@@ -3,6 +3,7 @@ package com.video.backend.video_backend.controller;
 import com.video.backend.video_backend.dto.TagRequest;
 import com.video.backend.video_backend.dto.TagResponse;
 import com.video.backend.video_backend.service.TagService;
+import com.video.backend.video_backend.util.TagType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,8 +20,8 @@ public class TagController {
     private final TagService tagService;
 
     @GetMapping
-    public ResponseEntity<Page<TagResponse>> findAll(Pageable pageable){
-        return ResponseEntity.ok(tagService.findAll(pageable));
+    public ResponseEntity<Page<TagResponse>> findAll(@RequestParam TagType type, Pageable pageable){
+        return ResponseEntity.ok(tagService.findAll(type, pageable));
     }
 
     @PostMapping
@@ -34,7 +35,7 @@ public class TagController {
     }
 
     @GetMapping("/by-names")
-    public ResponseEntity<List<TagResponse>> findTagsByNombre(@RequestParam(name = "tags") List<String> tags){
-        return ResponseEntity.ok(tagService.findByName(tags));
+    public ResponseEntity<List<TagResponse>> findTagsByNombre(@RequestParam(name = "tags") List<String> tags, @RequestParam TagType type){
+        return ResponseEntity.ok(tagService.findByName(tags, type));
     }
 }

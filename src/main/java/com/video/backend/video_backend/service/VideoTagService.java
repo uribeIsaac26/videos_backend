@@ -4,10 +4,12 @@ import com.video.backend.video_backend.dto.VideoModel;
 import com.video.backend.video_backend.dto.VideoTagRequest;
 import com.video.backend.video_backend.entity.Tag;
 import com.video.backend.video_backend.entity.Video;
+import com.video.backend.video_backend.excepcion.InvalidTagTypeException;
 import com.video.backend.video_backend.excepcion.VideoNotFoundException;
 import com.video.backend.video_backend.mapper.VideoMapper;
 import com.video.backend.video_backend.repository.TagRepository;
 import com.video.backend.video_backend.repository.VideoRepository;
+import com.video.backend.video_backend.util.TagType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,10 @@ public class VideoTagService {
         Video video = videoRepository.findById(videoTagRequest.getVideoId()).orElseThrow(VideoNotFoundException::new);
 
         List<Tag> tags = tagRepository.findAllById(videoTagRequest.getTagIds());
+
+        if (tags.stream().anyMatch(tag -> tag.getType() != TagType.VIDEO)) {
+            throw new InvalidTagTypeException("Solo se pueden asignar tags de tipo VIDEO a un video");
+        }
 
         video.getTags().clear();
         video.getTags().addAll(tags);

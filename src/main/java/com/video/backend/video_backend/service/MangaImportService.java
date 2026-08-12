@@ -11,6 +11,7 @@ import com.video.backend.video_backend.entity.Tag;
 import com.video.backend.video_backend.repository.MangaMetadataValueRepository;
 import com.video.backend.video_backend.repository.MangaRepository;
 import com.video.backend.video_backend.repository.TagRepository;
+import com.video.backend.video_backend.util.TagType;
 import com.video.backend.video_backend.util.TipoManga;
 import com.video.backend.video_backend.util.TipoMetadatoManga;
 import lombok.RequiredArgsConstructor;
@@ -158,9 +159,10 @@ public class MangaImportService {
         Map<Integer, MangaTag> mangaTagsPorTagId = new LinkedHashMap<>();
 
         for (MangaMetadataTagDto tagDto : tags) {
-            Tag tag = tagRepository.findByName(tagDto.tag()).orElseGet(() -> {
+            Tag tag = tagRepository.findByNameAndType(tagDto.tag(), TagType.MANGA).orElseGet(() -> {
                 Tag nuevo = new Tag();
                 nuevo.setName(tagDto.tag());
+                nuevo.setType(TagType.MANGA);
                 return tagRepository.save(nuevo);
             });
 

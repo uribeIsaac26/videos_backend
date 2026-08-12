@@ -1,6 +1,8 @@
 package com.video.backend.video_backend.repository;
 
 import com.video.backend.video_backend.entity.Tag;
+import com.video.backend.video_backend.util.TagType;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,10 +14,12 @@ import java.util.Optional;
 
 @Repository
 public interface TagRepository extends JpaRepository<Tag, Integer> {
-    Optional<Tag> findByName(String name);
+    Optional<Tag> findByNameAndType(String name, TagType type);
 
-    List<Tag> findByNameIn(List<String> names);
+    List<Tag> findByNameInAndType(List<String> names, TagType type);
 
-    @Query("SELECT t.name FROM Tag t WHERE LOWER(t.name) LIKE LOWER(CONCAT(:prefijo, '%')) ORDER BY t.name")
-    List<String> findNamesStartingWith(@Param("prefijo") String prefijo, Pageable pageable);
+    Page<Tag> findByType(TagType type, Pageable pageable);
+
+    @Query("SELECT t.name FROM Tag t WHERE t.type = :tipo AND LOWER(t.name) LIKE LOWER(CONCAT(:prefijo, '%')) ORDER BY t.name")
+    List<String> findNamesStartingWith(@Param("prefijo") String prefijo, @Param("tipo") TagType tipo, Pageable pageable);
 }

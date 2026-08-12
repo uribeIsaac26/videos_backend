@@ -13,6 +13,7 @@ import com.video.backend.video_backend.repository.MangaMetadataValueRepository;
 import com.video.backend.video_backend.repository.MangaPageRepository;
 import com.video.backend.video_backend.repository.MangaRepository;
 import com.video.backend.video_backend.repository.TagRepository;
+import com.video.backend.video_backend.util.TagType;
 import com.video.backend.video_backend.util.TipoMetadatoManga;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +95,7 @@ public class MangaService {
 
         mangaRepository.findLanguagesStartingWith(q, limite)
                 .forEach(valor -> sugerencias.add("language:" + valor));
-        tagRepository.findNamesStartingWith(q, limite)
+        tagRepository.findNamesStartingWith(q, TagType.MANGA, limite)
                 .forEach(valor -> sugerencias.add("tag:" + valor));
         mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.GROUP, q, limite)
                 .forEach(valor -> sugerencias.add("group:" + valor));
