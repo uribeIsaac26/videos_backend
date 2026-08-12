@@ -7,6 +7,8 @@ public record MangaSearchCriteria(
         List<MangaTagCriterio> tagsIncluir,
         List<MangaTagCriterio> tagsExcluir,
         List<String> gruposIncluir,
-        List<String> gruposExcluir
+        List<String> gruposExcluir,
+        List<String> artistasIncluir,
+        List<String> artistasExcluir
 ) {
 }

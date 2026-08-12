@@ -44,6 +44,14 @@ public final class MangaSpecifications {
             specs.add(Specification.not(tieneMetadata(TipoMetadatoManga.GROUP, grupo)));
         }
 
+        for (String artista : criteria.artistasIncluir()) {
+            specs.add(tieneMetadata(TipoMetadatoManga.ARTIST, artista));
+        }
+
+        for (String artista : criteria.artistasExcluir()) {
+            specs.add(Specification.not(tieneMetadata(TipoMetadatoManga.ARTIST, artista)));
+        }
+
         return Specification.allOf(specs);
     }
 

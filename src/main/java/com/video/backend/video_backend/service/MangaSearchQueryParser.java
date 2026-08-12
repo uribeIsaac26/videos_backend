@@ -16,6 +16,7 @@ import java.util.List;
  * - "male:tag" / "female:tag" exigen un tag con ese genero
  * - "tag:tag" exige el tag sin importar el genero
  * - "group:nombre" exige un grupo con ese nombre
+ * - "artist:nombre" exige un artista con ese nombre
  * - el prefijo "-" niega cualquiera de los anteriores (excepto el idioma en palabra suelta)
  * - valores con espacios se escriben entre comillas, ej. tag:"full color"
  */
@@ -28,10 +29,12 @@ public class MangaSearchQueryParser {
         List<MangaTagCriterio> excluir = new ArrayList<>();
         List<String> gruposIncluir = new ArrayList<>();
         List<String> gruposExcluir = new ArrayList<>();
+        List<String> artistasIncluir = new ArrayList<>();
+        List<String> artistasExcluir = new ArrayList<>();
         String language = null;
 
         if (query == null || query.isBlank()) {
-            return new MangaSearchCriteria(null, incluir, excluir, gruposIncluir, gruposExcluir);
+            return new MangaSearchCriteria(null, incluir, excluir, gruposIncluir, gruposExcluir, artistasIncluir, artistasExcluir);
         }
 
         for (String token : tokenizar(query)) {
@@ -69,6 +72,11 @@ public class MangaSearchQueryParser {
                 continue;
             }
 
+            if (prefijo.equals("artist")) {
+                (negado ? artistasExcluir : artistasIncluir).add(valor);
+                continue;
+            }
+
             GeneroTag genero = switch (prefijo) {
                 case "male" -> GeneroTag.MALE;
                 case "female" -> GeneroTag.FEMALE;
@@ -85,7 +93,7 @@ public class MangaSearchQueryParser {
             (negado ? excluir : incluir).add(criterio);
         }
 
-        return new MangaSearchCriteria(language, incluir, excluir, gruposIncluir, gruposExcluir);
+        return new MangaSearchCriteria(language, incluir, excluir, gruposIncluir, gruposExcluir, artistasIncluir, artistasExcluir);
     }
 
     private List<String> tokenizar(String query) {
