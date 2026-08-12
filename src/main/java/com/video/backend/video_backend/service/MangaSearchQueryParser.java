@@ -19,7 +19,8 @@ import java.util.List;
  * - "artist:nombre" exige un artista con ese nombre
  * - "parody:nombre" exige una parodia con ese nombre
  * - el prefijo "-" niega cualquiera de los anteriores (excepto el idioma en palabra suelta)
- * - valores con espacios se escriben entre comillas, ej. tag:"full color"
+ * - valores con espacios se escriben con guion bajo en vez de espacio, ej. tag:full_color
+ *   (o, alternativamente, entre comillas, ej. tag:"full color")
  */
 @Component
 @Slf4j
@@ -51,13 +52,13 @@ public class MangaSearchQueryParser {
                 if (negado) {
                     log.warn("Se ignora el termino de idioma negado '{}': no soportado", token);
                 } else {
-                    language = cuerpo;
+                    language = cuerpo.replace('_', ' ');
                 }
                 continue;
             }
 
             String prefijo = cuerpo.substring(0, separador).toLowerCase();
-            String valor = cuerpo.substring(separador + 1);
+            String valor = cuerpo.substring(separador + 1).replace('_', ' ');
 
             if (valor.isBlank()) continue;
 

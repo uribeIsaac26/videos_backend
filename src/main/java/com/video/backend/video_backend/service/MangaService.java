@@ -94,15 +94,15 @@ public class MangaService {
         List<String> sugerencias = new ArrayList<>();
 
         mangaRepository.findLanguagesStartingWith(q, limite)
-                .forEach(valor -> sugerencias.add("language:" + valor));
+                .forEach(valor -> sugerencias.add("language:" + valor.replace(' ', '_')));
         tagRepository.findNamesStartingWith(q, TagType.MANGA, limite)
-                .forEach(valor -> sugerencias.add("tag:" + valor));
+                .forEach(valor -> sugerencias.add("tag:" + valor.replace(' ', '_')));
         mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.GROUP, q, limite)
-                .forEach(valor -> sugerencias.add("group:" + valor));
+                .forEach(valor -> sugerencias.add("group:" + valor.replace(' ', '_')));
         mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.ARTIST, q, limite)
-                .forEach(valor -> sugerencias.add("artist:" + valor));
+                .forEach(valor -> sugerencias.add("artist:" + valor.replace(' ', '_')));
         mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.PARODY, q, limite)
-                .forEach(valor -> sugerencias.add("parody:" + valor));
+                .forEach(valor -> sugerencias.add("parody:" + valor.replace(' ', '_')));
 
         return sugerencias;
     }
