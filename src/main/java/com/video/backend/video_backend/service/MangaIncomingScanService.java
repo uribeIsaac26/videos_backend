@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
@@ -43,14 +44,30 @@ public class MangaIncomingScanService {
             return;
         }
 
+        AtomicInteger movidos = new AtomicInteger();
+        AtomicInteger fallidos = new AtomicInteger();
+
         try (Stream<Path> entries = Files.list(incomingDir)) {
-            entries.filter(Files::isDirectory).forEach(carpeta -> procesarCarpeta(carpeta, libraryDir));
+            entries.filter(Files::isDirectory)
+                    .forEach(carpeta -> procesarCarpeta(carpeta, libraryDir, movidos, fallidos));
         } catch (IOException e) {
             log.error("No se pudo listar el contenido de mangaIncoming", e);
+            return;
+        }
+
+        if (movidos.get() == 0 && fallidos.get() == 0) {
+            return;
+        }
+
+        if (fallidos.get() == 0) {
+            log.warn("Todos los mangas de mangaIncoming pudieron pasarse a mangaLibrary ({} movidos)", movidos.get());
+        } else {
+            log.warn("No todos los mangas de mangaIncoming pudieron pasarse a mangaLibrary: {} movidos, {} fallidos",
+                    movidos.get(), fallidos.get());
         }
     }
 
-    private void procesarCarpeta(Path carpeta, Path libraryDir) {
+    private void procesarCarpeta(Path carpeta, Path libraryDir, AtomicInteger movidos, AtomicInteger fallidos) {
         Path metadataPath = carpeta.resolve(METADATA_FILE_NAME);
 
         if (!Files.exists(metadataPath)) {
@@ -71,8 +88,10 @@ public class MangaIncomingScanService {
         try {
             moverCarpeta(carpeta, destino);
             log.info("Manga '{}' movido de mangaIncoming a mangaLibrary", carpeta.getFileName());
+            movidos.incrementAndGet();
         } catch (IOException e) {
             log.error("No se pudo mover la carpeta '{}' a mangaLibrary", carpeta.getFileName(), e);
+            fallidos.incrementAndGet();
         }
     }
 

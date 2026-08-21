@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
@@ -61,14 +62,30 @@ public class MangaImportService {
             return;
         }
 
+        AtomicInteger importados = new AtomicInteger();
+        AtomicInteger fallidos = new AtomicInteger();
+
         try (Stream<Path> entries = Files.list(libraryDir)) {
-            entries.filter(Files::isDirectory).forEach(this::procesarCarpeta);
+            entries.filter(Files::isDirectory)
+                    .forEach(carpeta -> procesarCarpeta(carpeta, importados, fallidos));
         } catch (IOException e) {
             log.error("No se pudo listar el contenido de mangaLibrary", e);
+            return;
+        }
+
+        if (importados.get() == 0 && fallidos.get() == 0) {
+            return;
+        }
+
+        if (fallidos.get() == 0) {
+            log.warn("Todos los mangas de mangaLibrary pudieron guardarse en la base de datos ({} importados)", importados.get());
+        } else {
+            log.warn("No todos los mangas pudieron guardarse en la base de datos: {} importados, {} fallidos",
+                    importados.get(), fallidos.get());
         }
     }
 
-    private void procesarCarpeta(Path carpeta) {
+    private void procesarCarpeta(Path carpeta, AtomicInteger importados, AtomicInteger fallidos) {
         Path metadataPath = carpeta.resolve(METADATA_FILE_NAME);
 
         if (!Files.exists(metadataPath)) {
@@ -96,8 +113,10 @@ public class MangaImportService {
         try {
             importarManga(dto, carpeta);
             log.info("Manga '{}' (id={}) importado a la base de datos", dto.title(), dto.id());
+            importados.incrementAndGet();
         } catch (Exception e) {
             log.error("No se pudo importar el manga '{}' (id={})", carpeta.getFileName(), dto.id(), e);
+            fallidos.incrementAndGet();
         }
     }
 
