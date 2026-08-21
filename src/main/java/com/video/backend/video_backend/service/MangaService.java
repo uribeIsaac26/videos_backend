@@ -17,6 +17,7 @@ import com.video.backend.video_backend.util.TagType;
 import com.video.backend.video_backend.util.TipoMetadatoManga;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -25,7 +26,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,6 +37,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class MangaService {
 
     private static final int LIMITE_SUGERENCIAS_POR_CATEGORIA = 5;
@@ -57,6 +61,18 @@ public class MangaService {
     public MangaModel findById(Integer id) {
         Manga manga = mangaRepository.findById(id).orElseThrow(MangaNotFoundException::new);
         return mangaMapper.toModel(manga);
+    }
+
+    @Transactional
+    public void deleteManga(Integer id) throws IOException {
+        Manga manga = mangaRepository.findById(id).orElseThrow(MangaNotFoundException::new);
+
+        Path carpetaPath = Paths.get(mediaBasePath, manga.getCarpeta());
+        FileSystemUtils.deleteRecursively(carpetaPath);
+
+        log.info("Manga eliminado");
+
+        mangaRepository.deleteById(id);
     }
 
     @Transactional
