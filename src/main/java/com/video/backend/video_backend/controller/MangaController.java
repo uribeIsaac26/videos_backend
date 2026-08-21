@@ -1,5 +1,6 @@
 package com.video.backend.video_backend.controller;
 
+import com.video.backend.video_backend.dto.MangaLeidoRequest;
 import com.video.backend.video_backend.dto.MangaModel;
 import com.video.backend.video_backend.dto.MangaPageResponse;
 import com.video.backend.video_backend.dto.MangaSummaryModel;
@@ -12,7 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +45,13 @@ public class MangaController {
     public ResponseEntity<Void> deleteManga(@PathVariable Integer id) throws IOException {
         mangaService.deleteManga(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("{id}/leido")
+    public ResponseEntity<MangaModel> marcarLeido(
+            @PathVariable Integer id,
+            @RequestBody MangaLeidoRequest request) {
+        return ResponseEntity.ok(mangaService.marcarLeido(id, request));
     }
 
     @GetMapping("{mangaId}/paginas")

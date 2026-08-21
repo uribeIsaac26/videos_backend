@@ -49,6 +49,9 @@ public class Manga {
     @Column(name = "date_creation")
     private LocalDateTime dateCreation;
 
+    @Column(name = "leido")
+    private Boolean leido = false;
+
     @OneToMany(mappedBy = "manga", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MangaPage> paginas = new ArrayList<>();
 

@@ -1,5 +1,6 @@
 package com.video.backend.video_backend.service;
 
+import com.video.backend.video_backend.dto.MangaLeidoRequest;
 import com.video.backend.video_backend.dto.MangaModel;
 import com.video.backend.video_backend.dto.MangaPageResponse;
 import com.video.backend.video_backend.dto.MangaSearchCriteria;
@@ -61,6 +62,18 @@ public class MangaService {
     public MangaModel findById(Integer id) {
         Manga manga = mangaRepository.findById(id).orElseThrow(MangaNotFoundException::new);
         return mangaMapper.toModel(manga);
+    }
+
+    @Transactional
+    public MangaModel marcarLeido(Integer id, MangaLeidoRequest request) {
+        if (request == null || request.leido() == null) {
+            throw new IllegalArgumentException("El campo 'leido' es obligatorio");
+        }
+
+        Manga manga = mangaRepository.findById(id).orElseThrow(MangaNotFoundException::new);
+        manga.setLeido(request.leido());
+
+        return mangaMapper.toModel(mangaRepository.save(manga));
     }
 
     @Transactional

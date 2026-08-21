@@ -17,6 +17,7 @@ public record MangaModel(
         List<String> groups,
         List<String> parodys,
         List<MangaTagResponse> tags,
-        List<MangaPageResponse> paginas
+        List<MangaPageResponse> paginas,
+        Boolean leido
 ) {
 }

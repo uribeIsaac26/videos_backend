@@ -14,6 +14,7 @@ public record MangaSummaryModel(
         String portadaUrl,
         List<String> artists,
         List<String> parodys,
-        List<MangaTagResponse> tags
+        List<MangaTagResponse> tags,
+        Boolean leido
 ) {
 }
