@@ -25,6 +25,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
@@ -44,6 +45,7 @@ import java.util.Set;
 public class MangaService {
 
     private static final int LIMITE_SUGERENCIAS_POR_CATEGORIA = 5;
+    private static final Sort ORDEN_MAS_RECIENTES_PRIMERO = Sort.by(Sort.Direction.DESC, "fechaPublicacion");
 
     private final MangaRepository mangaRepository;
     private final MangaPageRepository mangaPageRepository;
@@ -57,7 +59,7 @@ public class MangaService {
 
     @Transactional
     public Page<MangaSummaryModel> findAll(Pageable pageable) {
-        return mangaRepository.findAll(pageable).map(mangaMapper::toSummary);
+        return mangaRepository.findAll(ordenadoPorFecha(pageable)).map(mangaMapper::toSummary);
     }
 
     @Transactional
@@ -93,29 +95,33 @@ public class MangaService {
     @Transactional
     public Page<MangaSummaryModel> findByAllTags(List<Integer> tagIds, Pageable pageable) {
         Long tagCount = (long) tagIds.size();
-        return mangaRepository.findByAllTags(tagIds, tagCount, pageable).map(mangaMapper::toSummary);
+        return mangaRepository.findByAllTags(tagIds, tagCount, ordenadoPorFecha(pageable)).map(mangaMapper::toSummary);
     }
 
     @Transactional
     public Page<MangaSummaryModel> findByArtist(String nombre, Pageable pageable) {
-        return mangaRepository.findByMetadataValue(TipoMetadatoManga.ARTIST, nombre, pageable).map(mangaMapper::toSummary);
+        return mangaRepository.findByMetadataValue(TipoMetadatoManga.ARTIST, nombre, ordenadoPorFecha(pageable)).map(mangaMapper::toSummary);
     }
 
     @Transactional
     public Page<MangaSummaryModel> findByGroup(String nombre, Pageable pageable) {
-        return mangaRepository.findByMetadataValue(TipoMetadatoManga.GROUP, nombre, pageable).map(mangaMapper::toSummary);
+        return mangaRepository.findByMetadataValue(TipoMetadatoManga.GROUP, nombre, ordenadoPorFecha(pageable)).map(mangaMapper::toSummary);
     }
 
     @Transactional
     public Page<MangaSummaryModel> findByParody(String nombre, Pageable pageable) {
-        return mangaRepository.findByMetadataValue(TipoMetadatoManga.PARODY, nombre, pageable).map(mangaMapper::toSummary);
+        return mangaRepository.findByMetadataValue(TipoMetadatoManga.PARODY, nombre, ordenadoPorFecha(pageable)).map(mangaMapper::toSummary);
     }
 
     @Transactional
     public Page<MangaSummaryModel> search(String q, Pageable pageable) {
         MangaSearchCriteria criteria = mangaSearchQueryParser.parse(q);
         Specification<Manga> spec = MangaSpecifications.fromCriteria(criteria);
-        return mangaRepository.findAll(spec, pageable).map(mangaMapper::toSummary);
+        return mangaRepository.findAll(spec, ordenadoPorFecha(pageable)).map(mangaMapper::toSummary);
+    }
+
+    private Pageable ordenadoPorFecha(Pageable pageable) {
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), ORDEN_MAS_RECIENTES_PRIMERO);
     }
 
     public List<String> sugerencias(String q) {

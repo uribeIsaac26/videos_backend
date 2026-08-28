@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,8 +32,7 @@ public class MangaController {
     private final MangaService mangaService;
 
     @GetMapping
-    public ResponseEntity<Page<MangaSummaryModel>> findAll(
-            @PageableDefault(sort = "fechaPublicacion", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<Page<MangaSummaryModel>> findAll(Pageable pageable) {
         return ResponseEntity.ok(mangaService.findAll(pageable));
     }
 
@@ -82,35 +79,35 @@ public class MangaController {
     @GetMapping("/tag")
     public ResponseEntity<Page<MangaSummaryModel>> getMangasByTag(
             @RequestParam List<Integer> tagIds,
-            @PageableDefault(sort = "fechaPublicacion", direction = Sort.Direction.DESC) Pageable pageable) {
+            Pageable pageable) {
         return ResponseEntity.ok(mangaService.findByAllTags(tagIds, pageable));
     }
 
     @GetMapping("/artist")
     public ResponseEntity<Page<MangaSummaryModel>> getMangasByArtist(
             @RequestParam String nombre,
-            @PageableDefault(sort = "fechaPublicacion", direction = Sort.Direction.DESC) Pageable pageable) {
+            Pageable pageable) {
         return ResponseEntity.ok(mangaService.findByArtist(nombre, pageable));
     }
 
     @GetMapping("/group")
     public ResponseEntity<Page<MangaSummaryModel>> getMangasByGroup(
             @RequestParam String nombre,
-            @PageableDefault(sort = "fechaPublicacion", direction = Sort.Direction.DESC) Pageable pageable) {
+            Pageable pageable) {
         return ResponseEntity.ok(mangaService.findByGroup(nombre, pageable));
     }
 
     @GetMapping("/parody")
     public ResponseEntity<Page<MangaSummaryModel>> getMangasByParody(
             @RequestParam String nombre,
-            @PageableDefault(sort = "fechaPublicacion", direction = Sort.Direction.DESC) Pageable pageable) {
+            Pageable pageable) {
         return ResponseEntity.ok(mangaService.findByParody(nombre, pageable));
     }
 
     @GetMapping("/search")
     public ResponseEntity<Page<MangaSummaryModel>> search(
             @RequestParam String q,
-            @PageableDefault(sort = "fechaPublicacion", direction = Sort.Direction.DESC) Pageable pageable) {
+            Pageable pageable) {
         return ResponseEntity.ok(mangaService.search(q, pageable));
     }
 
