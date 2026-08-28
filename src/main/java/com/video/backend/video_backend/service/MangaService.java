@@ -34,7 +34,9 @@ import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -124,8 +126,30 @@ public class MangaService {
 
         mangaRepository.findLanguagesStartingWith(q, limite)
                 .forEach(valor -> sugerencias.add("language:" + valor.replace(' ', '_')));
-        tagRepository.findNamesStartingWith(q, TagType.MANGA, limite)
-                .forEach(valor -> sugerencias.add("tag:" + valor.replace(' ', '_')));
+
+        List<String> nombresTag = tagRepository.findNamesStartingWith(q, TagType.MANGA, limite);
+        if (!nombresTag.isEmpty()) {
+            Set<String> conMale = new HashSet<>(tagRepository.findNombresConMale(nombresTag, TagType.MANGA));
+            Set<String> conFemale = new HashSet<>(tagRepository.findNombresConFemale(nombresTag, TagType.MANGA));
+
+            for (String nombre : nombresTag) {
+                String valor = nombre.replace(' ', '_');
+                boolean tieneGenero = false;
+
+                if (conMale.contains(nombre)) {
+                    sugerencias.add("male:" + valor);
+                    tieneGenero = true;
+                }
+                if (conFemale.contains(nombre)) {
+                    sugerencias.add("female:" + valor);
+                    tieneGenero = true;
+                }
+                if (!tieneGenero) {
+                    sugerencias.add("tag:" + valor);
+                }
+            }
+        }
+
         mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.GROUP, q, limite)
                 .forEach(valor -> sugerencias.add("group:" + valor.replace(' ', '_')));
         mangaMetadataValueRepository.findValoresStartingWith(TipoMetadatoManga.ARTIST, q, limite)

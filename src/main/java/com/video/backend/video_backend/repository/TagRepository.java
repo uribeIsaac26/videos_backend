@@ -22,4 +22,12 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 
     @Query("SELECT t.name FROM Tag t WHERE t.type = :tipo AND LOWER(t.name) LIKE LOWER(CONCAT(:prefijo, '%')) ORDER BY t.name")
     List<String> findNamesStartingWith(@Param("prefijo") String prefijo, @Param("tipo") TagType tipo, Pageable pageable);
+
+    @Query("SELECT DISTINCT t.name FROM Tag t JOIN t.mangaTagSet mt " +
+            "WHERE t.type = :tipo AND mt.esMale = true AND t.name IN :nombres")
+    List<String> findNombresConMale(@Param("nombres") List<String> nombres, @Param("tipo") TagType tipo);
+
+    @Query("SELECT DISTINCT t.name FROM Tag t JOIN t.mangaTagSet mt " +
+            "WHERE t.type = :tipo AND mt.esFemale = true AND t.name IN :nombres")
+    List<String> findNombresConFemale(@Param("nombres") List<String> nombres, @Param("tipo") TagType tipo);
 }
