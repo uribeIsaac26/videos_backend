@@ -12,8 +12,13 @@ import java.util.List;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image, Integer> {
-    @Query("SELECT i FROM Image i LEFT JOIN FETCH i.tags")
-    Page<Image> findAll(Pageable pageable);
+    @Query(value = "SELECT i FROM Image i WHERE i.tags IS NOT EMPTY",
+            countQuery = "SELECT COUNT(i) FROM Image i WHERE i.tags IS NOT EMPTY")
+    Page<Image> findAllTagged(Pageable pageable);
+
+    @Query(value = "SELECT i FROM Image i WHERE i.tags IS EMPTY",
+            countQuery = "SELECT COUNT(i) FROM Image i WHERE i.tags IS EMPTY")
+    Page<Image> findAllUntagged(Pageable pageable);
 
     @Query("SELECT i FROM Image i " +
             "JOIN i.tags t " +

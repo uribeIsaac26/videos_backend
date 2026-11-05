@@ -2,6 +2,7 @@ package com.video.backend.video_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class Image {
     private String contentType;
 
     @ManyToMany
+    @BatchSize(size = 50)
     @JoinTable(
             name = "image_tag",
             joinColumns = @JoinColumn(name = "image_id"),

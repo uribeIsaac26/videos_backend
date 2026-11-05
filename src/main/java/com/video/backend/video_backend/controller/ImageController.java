@@ -27,8 +27,13 @@ public class ImageController {
     private final ImageTagService imageTagService;
 
     @GetMapping
-    public ResponseEntity<Page<ImageModel>> findAll(Pageable pageable) {
-        return ResponseEntity.ok(imageService.findAll(pageable));
+    public ResponseEntity<Page<ImageModel>> findAllTagged(Pageable pageable) {
+        return ResponseEntity.ok(imageService.findAllTagged(pageable));
+    }
+
+    @GetMapping("/untagged")
+    public ResponseEntity<Page<ImageModel>> findAllUntagged(Pageable pageable) {
+        return ResponseEntity.ok(imageService.findAllUntagged(pageable));
     }
 
     @GetMapping("{id}/image")

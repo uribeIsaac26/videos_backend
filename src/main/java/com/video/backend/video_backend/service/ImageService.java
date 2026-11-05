@@ -38,8 +38,13 @@ public class ImageService {
     private String mediaBasePath;
 
     @Transactional
-    public Page<ImageModel> findAll(Pageable pageable) {
-        return imageRepository.findAll(pageable).map(imageMapper::toModel);
+    public Page<ImageModel> findAllTagged(Pageable pageable) {
+        return imageRepository.findAllTagged(pageable).map(imageMapper::toModel);
+    }
+
+    @Transactional
+    public Page<ImageModel> findAllUntagged(Pageable pageable) {
+        return imageRepository.findAllUntagged(pageable).map(imageMapper::toModel);
     }
 
     public Resource findImageById(Integer id) {
